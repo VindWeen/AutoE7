@@ -28,6 +28,7 @@ from mode_preferences import ModePreferences
 from episode_vision import EpisodeVision
 from mode_navigation import ModeNavigation
 from navigation_vision import NavigationVision
+from installation import is_installed, InstallationLock
 
 ROOT = Path(sys.executable).resolve().parent if getattr(sys, 'frozen', False) else Path(__file__).resolve().parent
 RETRY_ACTIONS = {'ready', 'select_team', 'start', 'start_quest', 'skip', 'clear', 'map_rank_up',
@@ -78,6 +79,14 @@ def bounds(hwnd):
 
 class App:
     def __init__(self):
+        app_id = C.windll.shell32.SetCurrentProcessExplicitAppUserModelID
+        app_id.argtypes = [W.LPCWSTR]
+        app_id('VindWeen.AutoE7')
+        self.installation_lock = InstallationLock() if is_installed(ROOT) else None
+        if self.installation_lock is not None and self.installation_lock.already_running:
+            messagebox.showinfo('AutoE7', 'AutoE7 đang mở. Hãy dùng cửa sổ hiện tại.')
+            self.installation_lock.close()
+            return
         self.root = tk.Tk()
         self.root.title('AutoE7 — Kịch bản nhận diện hình ảnh')
         self.root.geometry('820x780')
@@ -224,6 +233,8 @@ class App:
         self.running = False
         self.window_capture.close()
         self.root.destroy()
+        if getattr(self, 'installation_lock', None) is not None:
+            self.installation_lock.close()
 
     def detect(self, frame, rule):
         # Normalize game content to reference resolution before matching.
@@ -657,7 +668,10 @@ class App:
 
 
 if __name__ == '__main__':
-    if '--self-test' in sys.argv:
+    if len(sys.argv) > 1 and sys.argv[1] == '--apply-update':
+        from installed_updates import helper_entry
+        sys.exit(helper_entry(sys.argv[2:]))
+    elif '--self-test' in sys.argv:
         # Used to verify the portable build without clicking any game window.
         import traceback
         report = {'ok': False}

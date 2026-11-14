@@ -1,0 +1,20 @@
+AutoE7 — Bản cài đặt Windows x64
+
+1. Chạy AutoE7-Setup-<phiên-bản>.exe, chọn thư mục và cài đặt.
+   Mặc định: %LOCALAPPDATA%\Programs\AutoE7, theo tài khoản Windows hiện tại.
+2. Mở AutoE7 từ Start Menu; có thể chọn tạo shortcut Desktop khi cài.
+3. Cấu hình cá nhân được giữ riêng tại %LOCALAPPDATA%\AutoE7\settings.json.
+4. Có bản mới: bấm Cập nhật cạnh tiêu đề AutoE7 hoặc trong thông báo bản mới.
+   App tải bộ cài và kiểm tra SHA-256 trước. Tải xong, app lưu cấu hình,
+   dừng tác vụ, đóng, nâng cấp vào cùng thư mục và mở lại.
+5. Mất mạng, hủy tải hoặc tải lỗi: tiếp tục dùng bản đang cài.
+6. Gỡ cài đặt tại Settings > Apps của Windows. Cấu hình cá nhân được giữ lại.
+
+Chỉ bản cài đặt có cập nhật tại chỗ. Bản portable vẫn mở trang tải ZIP.
+Một release cần có AutoE7-Setup-<phiên-bản>.exe đúng tên và SHA-256 trên GitHub
+thì app mới cung cấp cập nhật tự tải.
+
+Installed Windows app: run Setup, launch AutoE7 from Start Menu, and use
+Update when a newer release includes its installer. Downloads are verified
+before AutoE7 closes, upgrades, and reopens. Settings survive upgrades and
+uninstall. Portable builds keep the manual ZIP update flow.

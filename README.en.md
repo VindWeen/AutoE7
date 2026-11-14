@@ -32,6 +32,12 @@ py app.py
 
 Download the ZIP from [GitHub Releases](https://github.com/VindWeen/AutoE7/releases), extract the entire archive, and open **`AutoE7.exe`**. The portable version does not require a Python installation.
 
+### Installer
+
+Download **AutoE7-Setup-<version>.exe** from [GitHub Releases](https://github.com/VindWeen/AutoE7/releases), run Setup, and launch AutoE7 from Start Menu. Installs for the current Windows user, with an optional Desktop shortcut.
+
+Installed builds offer **Update** to download, verify, install, and reopen the newer version while keeping personal preferences. Portable builds continue to use manual ZIP downloads.
+
 ## Usage
 
 1. Open the game, prepare your team, and navigate to the starting screen for your chosen activity.

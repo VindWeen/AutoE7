@@ -57,6 +57,19 @@ class UpdateTests(unittest.TestCase):
         self.assertEqual(request.full_url, 'https://api.github.com/repos/example/AutoE7/releases/latest')
         self.assertEqual(opener.call_args.kwargs['timeout'], 5.0)
 
+    def test_new_release_installer_metadata_is_verified_before_offering(self):
+        asset = {'name': 'AutoE7-Setup-2026.11.14-r2.exe', 'size': 100,
+                 'state': 'uploaded', 'digest': 'sha256:'+'a'*64,
+                 'browser_download_url': 'https://github.com/example/AutoE7/releases/download/'
+                                         'v2026.11.14-r2/AutoE7-Setup-2026.11.14-r2.exe'}
+        with self.response(self.release(assets=[asset])):
+            result = check_for_updates(self.config)
+        self.assertEqual(result.installer.sha256, 'a'*64)
+        self.assertEqual(result.installer.size, 100)
+        asset['browser_download_url'] = 'https://untrusted.test/setup.exe'
+        with self.response(self.release(assets=[asset])):
+            self.assertEqual(check_for_updates(self.config).status, 'error')
+
     def test_older_equal_draft_and_prerelease_are_not_offered(self):
         for changes in ({'tag_name': '2026.11.13-r99'}, {'tag_name': 'v2026.11.14-r1'},
                         {'draft': True}, {'prerelease': True}):

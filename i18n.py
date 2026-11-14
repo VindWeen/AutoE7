@@ -9,6 +9,19 @@ from string import Formatter
 
 
 CATALOGUE = {
+    'Bản cài đặt hỗ trợ tải và cài cập nhật ngay trong app.': 'The installed app can download and install updates directly.',
+    'Bấm Cập nhật để tải bản mới. Tải xong, app sẽ dừng tác vụ, cài đặt và mở lại; cấu hình được giữ nguyên.': 'Choose Update to download the new version. AutoE7 will then stop automation, install, and reopen with your settings preserved.',
+    'Bản phát hành này chưa có bộ cài cập nhật. Bạn vẫn có thể mở trang tải.': 'This release has no installer update yet. You can still open the download page.',
+    'Sẵn sàng cập nhật.': 'Ready to update.',
+    'Cập nhật': 'Update',
+    'Hủy tải': 'Cancel download',
+    'Đang tải bản cập nhật…': 'Downloading update…',
+    'Đã hủy cập nhật. Bạn có thể tiếp tục sử dụng.': 'Update cancelled. You can keep using AutoE7.',
+    'Không tải được cập nhật. Bản hiện tại vẫn dùng bình thường.': 'Update download failed. Your current version still works.',
+    'Chưa cài được cập nhật. Bản hiện tại vẫn dùng bình thường.': 'Unable to start the update. Your current version still works.',
+    'Thử cài lại': 'Retry installation',
+    'Dừng tác vụ để cập nhật.': 'Stopping automation to update.',
+    'AutoE7 đang mở. Hãy dùng cửa sổ hiện tại.': 'AutoE7 is already open. Use the existing window.',
     'Chưa kiểm tra được cập nhật · Vẫn có thể sử dụng.': 'Update check unavailable · You can keep using AutoE7.',
     'Chưa có bản phát hành công khai.': 'No public release yet.',
     'Chưa cấu hình cập nhật.': 'Updates are not configured.',
@@ -166,6 +179,8 @@ CATALOGUE = {
 # Fields capture opaque values. Only explicitly listed fields may themselves be
 # translated (nested status/error descriptions), keeping paths and titles safe.
 TEMPLATES = [
+    ('Có bản mới: {version} · Cập nhật', 'Update available: {version} · Update'),
+    ('Đang tải cập nhật: {percent}%', 'Downloading update: {percent}%'),
     ('Có bản mới: {version} · Xem cập nhật', 'Update available: {version} · View update'),
     ('Chỉ nhận diện · {detail}', 'Detection only · {detail}'),
     ('Đang vào mode · {detail}', 'Entering activity · {detail}'),

@@ -8,8 +8,9 @@ import sys
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
+from installed_updates import InstallerAsset, parse_installer_asset
 
-DEFAULT_VERSION = '2026.11.14-r3'
+DEFAULT_VERSION = '2026.11.14-r5'
 MAX_RESPONSE_BYTES = 1024 * 1024
 _VERSION = re.compile(r'v?(\d{4})\.(\d{2})\.(\d{2})-r([1-9]\d*)', re.ASCII)
 _REPOSITORY = re.compile(r'[A-Za-z0-9][A-Za-z0-9-]*/[A-Za-z0-9_.-]+', re.ASCII)
@@ -29,6 +30,7 @@ class UpdateResult:
     release_url: str = ''
     release_notes: str = ''
     message: str = ''
+    installer: InstallerAsset | None = None
 
 
 def parse_version(value):
@@ -113,7 +115,9 @@ def check_for_updates(config=None, *, timeout=5.0):
             notes = ''
         if not isinstance(notes, str):
             raise ValueError('Invalid release notes')
-        return UpdateResult('available', config.version, latest, release_url, notes[:12000])
+        installer = parse_installer_asset(data, config.repository)
+        return UpdateResult('available', config.version, latest, release_url, notes[:12000],
+                            installer=installer)
     except HTTPError as error:
         if error.code == 404:
             return UpdateResult('no_release', config.version, message='No published release found')

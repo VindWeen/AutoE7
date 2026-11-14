@@ -1,6 +1,8 @@
 """Desktop presentation for AutoE7. Automation remains in app.py."""
 import tkinter as tk
 from tkinter import ttk
+from pathlib import Path
+import sys
 from secret_shop import ITEMS
 from i18n import translate
 from updates import load_release_config
@@ -73,6 +75,9 @@ def apply_language(app):
 
 def build_ui(app):
     root = app.root
+    asset_root = Path(sys.executable).resolve().parent if getattr(sys, 'frozen', False) else Path(__file__).resolve().parent
+    # Set the Windows icon for this window and future settings/update dialogs.
+    root.iconbitmap(default=str(asset_root / 'assets' / 'branding' / 'app.ico'))
     root.title('AutoE7 · ' + BUILD)
     width = min(1040, max(900, root.winfo_screenwidth() - 80))
     height = min(780, max(620, root.winfo_screenheight() - 100))

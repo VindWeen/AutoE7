@@ -9,6 +9,9 @@ from app_settings import AppSettings
 from desktop_ui import build_ui, apply_language, set_running_ui
 from settings_ui import PreferencesController
 from updates import ReleaseConfig, UpdateResult
+from installed_updates import InstallerAsset, DownloadCancelled
+from unittest.mock import Mock
+from pathlib import Path
 
 
 class PreferencesUITests(unittest.TestCase):
@@ -154,6 +157,84 @@ class PreferencesUITests(unittest.TestCase):
             worker.assert_not_called()
         self.assertIsNone(self.controller.start_id)
         self.assertEqual(self.app.update_status.cget('text'), 'Tự kiểm tra cập nhật đang tắt.')
+
+    def installed_release(self):
+        self.controller.installed = True
+        self.controller.config = ReleaseConfig('2026.11.14-r3', 'example/AutoE7')
+        asset = InstallerAsset('v2026.11.14-r4',
+            'https://github.com/example/AutoE7/releases/download/v2026.11.14-r4/AutoE7-Setup-2026.11.14-r4.exe',
+            100, '0'*64)
+        result = UpdateResult('available', '2026.11.14-r3', asset.version,
+                             'https://github.com/example/AutoE7/releases/tag/'+asset.version, installer=asset)
+        self.controller.latest = result
+        self.controller.header('available', result)
+        self.controller.show_release()
+        return result
+
+    def test_installed_download_hands_off_only_after_success_and_saved_settings(self):
+        result = self.installed_release()
+        self.app.running = True
+        self.app.mode_preferences = Mock()
+        self.app.mode_preferences.flush.return_value = True
+        self.app.close = Mock()
+        self.app.stop = Mock()
+        path = Path('verified-setup.exe')
+        with patch('settings_ui.Thread') as worker, \
+                patch('settings_ui.download_installer', return_value=path), \
+                patch('settings_ui.launch_installer') as launch:
+            self.controller.start_download()
+            self.app.close.assert_not_called()
+            launch.assert_not_called()
+            worker.call_args.kwargs['target']()
+            self.controller.poll_install_events()
+        launch.assert_called_once_with(path, ROOT, asset=result.installer, repository='example/AutoE7')
+        self.app.stop.assert_called_once()
+        self.app.close.assert_called_once()
+
+    def test_installed_failed_or_cancelled_download_keeps_current_app(self):
+        for failure in (OSError('offline'), DownloadCancelled()):
+            self.installed_release()
+            self.app.close = Mock()
+            with patch('settings_ui.Thread') as worker, \
+                    patch('settings_ui.download_installer', side_effect=failure), \
+                    patch('settings_ui.launch_installer') as launch:
+                self.controller.start_download()
+                worker.call_args.kwargs['target']()
+                self.controller.poll_install_events()
+            self.app.close.assert_not_called()
+            launch.assert_not_called()
+            self.assertFalse(self.controller.download_busy)
+
+    def test_installed_progress_translates_and_closing_dialog_cancels(self):
+        self.installed_release()
+        with patch('settings_ui.Thread'):
+            self.controller.start_download()
+        self.controller.install_events.put(('progress', 42))
+        self.controller.poll_install_events()
+        self.assertIn('42%', self.app.update_status.cget('text'))
+        self.switch('en')
+        self.assertEqual(self.app.update_status.cget('text'), 'Downloading update: 42%')
+        self.controller.dismiss_release()
+        self.assertTrue(self.controller.download_cancel.is_set())
+
+    def test_failed_settings_save_prevents_installer_handoff(self):
+        self.installed_release()
+        self.app.mode_preferences = Mock()
+        self.app.mode_preferences.flush.return_value = False
+        self.app.close = Mock()
+        self.controller.downloaded = Path('verified-setup.exe')
+        self.controller.download_release = self.controller.latest
+        with patch('settings_ui.launch_installer') as launch:
+            self.controller.finish_install()
+        launch.assert_not_called()
+        self.app.close.assert_not_called()
+
+    def test_portable_does_not_download_installer_even_if_release_has_one(self):
+        self.installed_release()
+        self.controller.installed = False
+        with patch('settings_ui.download_installer') as download:
+            self.controller.start_download()
+        download.assert_not_called()
 
     def test_release_dialog_only_opens_browser_on_explicit_action(self):
         self.controller.latest = UpdateResult('available', '2026.11.14-r1', 'v2026.11.14-r2',

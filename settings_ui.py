@@ -1,7 +1,7 @@
-"""Preferences and read-only update notices. All Tk calls stay on the UI thread."""
+"""Preferences and opt-in updates. All Tk calls stay on the UI thread."""
 from dataclasses import replace
 from queue import Queue, Empty
-from threading import Thread
+from threading import Thread, Event, Lock
 import tkinter as tk
 from tkinter import ttk, messagebox
 import webbrowser
@@ -10,11 +10,15 @@ from app_settings import save_settings
 from desktop_ui import apply_language, BG, CARD, TEXT, MUTED
 from i18n import translate
 from updates import UpdateResult, check_for_updates, load_release_config
+from installation import is_installed
+from installed_updates import DownloadCancelled, download_installer, launch_installer, discard_installer
 
 
 class PreferencesController:
     def __init__(self, app, root_path):
         self.app = app
+        self.root_path = root_path
+        self.installed = is_installed(root_path)
         self.config = load_release_config(root_path)
         self.results = Queue()
         self.busy = False
@@ -27,6 +31,12 @@ class PreferencesController:
         self.manual = False
         self.startup_started = False
         self.startup_checked = False
+        self.install_events = Queue()
+        self.install_queue_lock = Lock()
+        self.download_cancel = Event()
+        self.download_busy = False
+        self.downloaded = None
+        self.download_release = None
 
     def tr(self, text):
         return translate(text, self.app.language)
@@ -54,7 +64,8 @@ class PreferencesController:
         }
         if status == 'available' and result is not None:
             self.app.update_status.pack_forget()
-            self.app.update_button.configure(text='Có bản mới: ' + result.latest_version + ' · Xem cập nhật')
+            suffix = ' · Cập nhật' if self.installed and result.installer else ' · Xem cập nhật'
+            self.app.update_button.configure(text='Có bản mới: ' + result.latest_version + suffix)
             self.app.update_button.pack(anchor='w')
         else:
             self.app.update_button.pack_forget()
@@ -74,7 +85,16 @@ class PreferencesController:
             self.header('off')
 
     def close(self):
-        self.closed = True
+        with self.install_queue_lock:
+            self.closed = True
+            self.download_cancel.set()
+            while True:
+                try:
+                    event, value = self.install_events.get_nowait()
+                except Empty:
+                    break
+                if event == 'ready':
+                    self.discard_download(value)
         for callback in (self.poll_id, self.start_id):
             if callback is not None:
                 self.app.root.after_cancel(callback)
@@ -128,7 +148,8 @@ class PreferencesController:
         self.feedback = ttk.Label(frame, text='', wraplength=490)
         self.feedback.pack(anchor='w', pady=(4, 12))
         ttk.Button(frame, text='Kiểm tra cập nhật', command=lambda: self.check(manual=True)).pack(anchor='w')
-        ttk.Label(frame, text='Tải bản mới từ GitHub Releases, giải nén vào thư mục mới rồi mở AutoE7.exe.',
+        ttk.Label(frame, text=('Bản cài đặt hỗ trợ tải và cài cập nhật ngay trong app.' if self.installed else
+                              'Tải bản mới từ GitHub Releases, giải nén vào thư mục mới rồi mở AutoE7.exe.'),
                   wraplength=490).pack(anchor='w', pady=(16, 12))
         ttk.Button(frame, text='Đóng', command=self.dialog.destroy).pack(anchor='e', side='bottom')
         self.feedback.configure(text='Đang kiểm tra cập nhật…' if self.busy else
@@ -165,6 +186,9 @@ class PreferencesController:
 
     def check(self, manual=False):
         if self.closed:
+            return
+        if self.download_busy:
+            self.feedback_text('Đang tải bản cập nhật…')
             return
         if self.start_id is not None:
             self.app.root.after_cancel(self.start_id)
@@ -214,7 +238,9 @@ class PreferencesController:
                 self.latest = None
                 if self.manual and not (self.dialog is not None and self.dialog.winfo_exists()):
                     messagebox.showinfo(self.tr('Kiểm tra cập nhật'), self.tr(text), parent=self.app.root)
-        self.poll_id = self.app.root.after(150, self.poll)
+        self.poll_install_events()
+        if not self.closed:
+            self.poll_id = self.app.root.after(150, self.poll)
 
     def show_release(self):
         if self.latest is None:
@@ -237,15 +263,136 @@ class PreferencesController:
         notes.pack(side='left', fill='both', expand=True)
         notes.insert('1.0', result.release_notes or self.tr('Xem chi tiết trên GitHub Releases.'))
         notes.configure(state='disabled')
-        ttk.Label(frame, text='Dừng tool trước khi đổi bản. Tải ZIP portable trong Assets, giải nén toàn bộ vào thư mục mới rồi mở AutoE7.exe.',
+        can_install = self.installed and result.installer is not None
+        ttk.Label(frame, text=('Bấm Cập nhật để tải bản mới. Tải xong, app sẽ dừng tác vụ, cài đặt và mở lại; cấu hình được giữ nguyên.' if can_install else
+                              'Bản phát hành này chưa có bộ cài cập nhật. Bạn vẫn có thể mở trang tải.' if self.installed else
+                              'Dừng tool trước khi đổi bản. Tải ZIP portable trong Assets, giải nén toàn bộ vào thư mục mới rồi mở AutoE7.exe.'),
                   wraplength=560).pack(anchor='w', pady=14)
+        if can_install:
+            self.install_feedback = ttk.Label(frame, text='Sẵn sàng cập nhật.', wraplength=560)
+            self.install_feedback.pack(anchor='w', pady=(0, 6))
+            self.install_progress = ttk.Progressbar(frame, maximum=100, mode='determinate')
+            self.install_progress.pack(fill='x', pady=(0, 10))
         actions = ttk.Frame(frame)
         actions.pack(fill='x')
-        ttk.Button(actions, text='Mở trang tải', style='Primary.TButton',
-                   command=self.open_download).pack(side='left')
-        ttk.Button(actions, text='Để sau', command=self.release_dialog.destroy).pack(side='right')
+        if can_install:
+            self.install_button = ttk.Button(actions, text='Cập nhật', style='Primary.TButton',
+                                              command=self.start_download)
+            self.install_button.pack(side='left')
+            self.cancel_download_button = ttk.Button(actions, text='Hủy tải', command=self.cancel_download,
+                                                      state='disabled')
+            self.cancel_download_button.pack(side='left', padx=(10, 0))
+        else:
+            ttk.Button(actions, text='Mở trang tải', style='Primary.TButton',
+                       command=self.open_download).pack(side='left')
+        ttk.Button(actions, text='Để sau', command=self.dismiss_release).pack(side='right')
+        self.release_dialog.protocol('WM_DELETE_WINDOW', self.dismiss_release)
+        self.release_dialog.bind('<Escape>', lambda event: self.dismiss_release())
         self.retranslate()
         self.present(self.release_dialog)
+
+    def dismiss_release(self):
+        if self.download_busy:
+            self.cancel_download()
+        if self.release_dialog is not None and self.release_dialog.winfo_exists():
+            self.release_dialog.destroy()
+
+    def cancel_download(self):
+        self.download_cancel.set()
+
+    @staticmethod
+    def discard_download(path):
+        try:
+            discard_installer(path)
+        except (OSError, ValueError):
+            # Cache cleanup must not prevent cancellation or closing the app.
+            pass
+
+    def install_status(self, text, percent=None):
+        self.app.update_button.pack_forget()
+        self.app.update_status.configure(text=text, foreground=MUTED)
+        self.app.update_status.pack(anchor='w')
+        if self.release_dialog is not None and self.release_dialog.winfo_exists():
+            self.install_feedback.configure(text=text)
+            if percent is not None:
+                self.install_progress.configure(value=percent)
+        self.retranslate()
+
+    def start_download(self):
+        if self.closed or self.busy or self.download_busy or not self.installed:
+            return
+        result = self.latest
+        if result is None or result.installer is None:
+            return
+        self.download_release = result
+        self.downloaded = None
+        self.download_cancel = Event()
+        self.download_busy = True
+        self.install_button.configure(state='disabled')
+        self.cancel_download_button.configure(state='normal')
+        self.install_status('Đang tải bản cập nhật…', 0)
+        def work():
+            previous = -1
+            def progress(done, total):
+                nonlocal previous
+                percent = min(100, int(done * 100 / total))
+                if percent != previous:
+                    previous = percent
+                    self.install_events.put(('progress', percent))
+            try:
+                path = download_installer(result.installer, self.config.repository,
+                                          progress=progress, cancel=self.download_cancel)
+                with self.install_queue_lock:
+                    if self.closed or self.download_cancel.is_set():
+                        self.discard_download(path)
+                        self.install_events.put(('cancelled', None))
+                    else:
+                        self.install_events.put(('ready', path))
+            except DownloadCancelled:
+                self.install_events.put(('cancelled', None))
+            except Exception:
+                self.install_events.put(('failed', None))
+        Thread(target=work, name='AutoE7-installer-download', daemon=True).start()
+
+    def poll_install_events(self):
+        while not self.closed:
+            try:
+                event, value = self.install_events.get_nowait()
+            except Empty:
+                return
+            if event == 'progress':
+                self.install_status(f'Đang tải cập nhật: {value}%', value)
+                continue
+            self.download_busy = False
+            if self.release_dialog is not None and self.release_dialog.winfo_exists():
+                self.install_button.configure(state='normal', command=self.start_download)
+                self.cancel_download_button.configure(state='disabled')
+            if event == 'ready' and not self.download_cancel.is_set():
+                self.downloaded = value
+                self.finish_install()
+            else:
+                if event == 'ready':
+                    self.discard_download(value)
+                self.install_status('Đã hủy cập nhật. Bạn có thể tiếp tục sử dụng.' if event == 'cancelled' or
+                                    self.download_cancel.is_set() else
+                                    'Không tải được cập nhật. Bản hiện tại vẫn dùng bình thường.')
+
+    def finish_install(self):
+        if self.closed or self.downloaded is None or self.download_release is None:
+            return
+        try:
+            if not self.app.mode_preferences.flush():
+                raise OSError('Preferences could not be saved')
+            if self.app.running:
+                self.app.stop('Dừng tác vụ để cập nhật.')
+            launch_installer(self.downloaded, self.root_path, asset=self.download_release.installer,
+                             repository=self.config.repository)
+        except Exception:
+            self.install_status('Chưa cài được cập nhật. Bản hiện tại vẫn dùng bình thường.')
+            if self.release_dialog is not None and self.release_dialog.winfo_exists():
+                self.install_button.configure(text='Thử cài lại', state='normal', command=self.finish_install)
+            return
+        self.app.close()
 
     def open_download(self):
         try:

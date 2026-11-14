@@ -42,6 +42,7 @@ exe = EXE(
     [],
     exclude_binaries=True,
     name='AutoE7',
+    icon=str(Path(SPECPATH) / 'assets' / 'branding' / 'app.ico'),
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -68,5 +69,5 @@ coll = COLLECT(
 portable_root = Path(coll.name)
 shutil.copytree(Path(SPECPATH) / 'assets', portable_root / 'assets', dirs_exist_ok=True)
 for filename in ('scenarios.json', 'release_config.json', 'PORTABLE-GUIDE.txt',
-                 'README.md', 'README.en.md', 'RELEASING.md'):
+                 'README.md', 'README.en.md', 'RELEASING.md', 'INSTALL-GUIDE.txt'):
     shutil.copy2(Path(SPECPATH) / filename, portable_root / filename)

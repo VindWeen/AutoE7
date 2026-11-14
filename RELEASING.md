@@ -50,3 +50,11 @@ Không có workflow tự build/phát hành khi sửa mã nguồn hoặc push.
 - Không có chức năng tự cập nhật tại chỗ; người dùng tải và giải nén vào thư mục mới.
 
 Tham khảo API chính thức: https://docs.github.com/en/rest/releases/releases#get-the-latest-release
+
+## Phát hành portable và bộ cài
+
+- Khi người dùng yêu cầu cả hai, build payload với `AutoE7.spec`, kiểm tra EXE rồi tạo ZIP portable và chạy `installer/build.ps1 -SourceDir <payload>` để tạo Setup.
+- Bộ cài phải tên `AutoE7-Setup-YYYY.MM.DD-rN.exe`, cùng phiên bản với tag và `release_config.json`. Xem [installer/README.md](installer/README.md).
+- Thử cài mới, nâng cấp, giữ setting, mutex khi app đang mở, tự mở lại và gỡ cài đặt. Không tự cài đè bản người dùng đang dùng để kiểm thử.
+- Đính kèm cả ZIP, Setup và các checksum SHA-256 vào cùng release. Bộ cập nhật chỉ tải Setup có đúng URL, tên, kích thước và digest `sha256:` trong GitHub asset metadata.
+- Xác minh từ bản cũ: portable mở trang tải; bản cài đặt nhận được metadata Setup. Chỉ đánh dấu Latest sau khi các asset tải lên đầy đủ.

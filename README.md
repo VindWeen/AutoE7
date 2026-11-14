@@ -32,6 +32,12 @@ py app.py
 
 Tải ZIP tại [GitHub Releases](https://github.com/VindWeen/AutoE7/releases), giải nén toàn bộ rồi mở **`AutoE7.exe`**. Bản portable không cần cài Python.
 
+### Bản cài đặt
+
+Tải **AutoE7-Setup-<phiên-bản>.exe** tại [GitHub Releases](https://github.com/VindWeen/AutoE7/releases), chạy bộ cài và mở AutoE7 từ Start Menu. Cài theo tài khoản Windows hiện tại; có thể tạo shortcut Desktop.
+
+Bản cài đặt có nút **Cập nhật** để tải, kiểm tra và cài phiên bản mới, sau đó tự mở lại. Setting cá nhân được giữ nguyên. Bản portable vẫn dùng cách tải và giải nén ZIP.
+
 ## Sử dụng
 
 1. Mở game, chuẩn bị đội hình và màn bắt đầu của hoạt động muốn chạy.
