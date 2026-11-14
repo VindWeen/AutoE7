@@ -2,6 +2,8 @@
 import ctypes
 from ctypes import wintypes
 import json
+import hashlib
+import os
 from pathlib import Path
 import sys
 
@@ -14,6 +16,17 @@ def is_installed(root):
         return isinstance(data, dict) and data.get('kind') == 'installed'
     except (OSError, ValueError, TypeError):
         return False
+
+
+def app_user_model_id(root):
+    """Portable/source windows must not inherit an installed shortcut's icon."""
+    if is_installed(root):
+        return 'VindWeen.AutoE7'
+    if not getattr(sys, 'frozen', False):
+        return 'VindWeen.AutoE7.Source'
+    location = os.path.normcase(str(Path(root).resolve()))
+    identity = hashlib.sha256(location.encode('utf-8')).hexdigest()[:16]
+    return 'VindWeen.AutoE7.Portable.' + identity
 
 
 class InstallationLock:

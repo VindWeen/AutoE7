@@ -9,6 +9,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import time
 from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
@@ -110,7 +111,10 @@ def discard_installer(path, *, cache_dir=None):
     Used when cancellation/closing wins the race after download_installer returns.
     Never accepts a path in the install directory or an arbitrary executable.
     """
-    path = Path(path).resolve()
+    original = Path(path).absolute()
+    path = original.resolve()
+    if path != original:
+        raise ValueError('Linked update cache paths cannot be deleted')
     root = _cache_root(cache_dir)
     attempt = path.parent
     prefix = 'AutoE7-Setup-'
@@ -124,6 +128,49 @@ def discard_installer(path, *, cache_dir=None):
     # Do not remove unrelated entries if another process placed anything here.
     if attempt.exists() and not any(attempt.iterdir()):
         attempt.rmdir()
+
+
+def cleanup_cached_installers(current_version, *, cache_dir=None, attempts=60, retry_delay=1):
+    """Run in the installed app's background thread after a successful startup.
+
+    A running version confirms that same-version/older setups are obsolete.
+    Retry locked files while Setup exits; leave newer downloads and other files alone.
+    """
+    from updates import parse_version
+    try:
+        current = parse_version(current_version)
+        root = _cache_root(cache_dir)
+        pending = []
+        for attempt in root.iterdir():
+            if (not re.fullmatch(r'download-[A-Za-z0-9_-]{6,}', attempt.name)
+                    or attempt.resolve() != attempt or not attempt.is_dir()):
+                continue
+            for path in attempt.iterdir():
+                match = re.fullmatch(r'AutoE7-Setup-(.+)\.exe', path.name)
+                if not match or path.resolve() != path or not path.is_file():
+                    continue
+                try:
+                    version = match.group(1)
+                    if path.name == _filename(version) and parse_version(version) <= current:
+                        pending.append(path)
+                except ValueError:
+                    continue
+        for index in range(attempts):
+            retry = []
+            for path in pending:
+                try:
+                    discard_installer(path, cache_dir=root)
+                except OSError:
+                    retry.append(path)
+                except ValueError:
+                    pass  # A path changed since discovery; do not follow it.
+            if not retry:
+                break
+            pending = retry
+            if index + 1 < attempts:
+                time.sleep(retry_delay)
+    except (OSError, ValueError):
+        pass  # Cache cleanup must never prevent the app from opening.
 
 
 def download_installer(asset, repository, *, cache_dir=None, progress=None, cancel=None,

@@ -39,5 +39,11 @@ show a normal final-page launch checkbox. Upgrade uses the existing directory
 and uninstall registration. User settings are separate from installed files;
 the installer does not delete or reset them.
 
+After the installed app opens successfully, a background task deletes cached
+Setup files for its own version and older versions from
+`%LOCALAPPDATA%\AutoE7\updates\download-*`. It retries for up to a minute while
+Setup releases the file. Newer installers (including failed upgrades), unrelated
+files and manually downloaded installers outside this cache are retained.
+
 Before publishing, test first install, upgrade, retained preferences, shortcuts,
 the mutex guard, and uninstall. Local installers are not published releases.

@@ -10,7 +10,7 @@ from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
 from installed_updates import InstallerAsset, parse_installer_asset
 
-DEFAULT_VERSION = '2026.11.14-r5'
+DEFAULT_VERSION = '2026.11.14-r6'
 MAX_RESPONSE_BYTES = 1024 * 1024
 _VERSION = re.compile(r'v?(\d{4})\.(\d{2})\.(\d{2})-r([1-9]\d*)', re.ASCII)
 _REPOSITORY = re.compile(r'[A-Za-z0-9][A-Za-z0-9-]*/[A-Za-z0-9_.-]+', re.ASCII)

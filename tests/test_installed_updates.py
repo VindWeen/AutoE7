@@ -10,7 +10,7 @@ from urllib.request import Request
 from installed_updates import (DownloadCancelled, InstallerAsset, MAX_INSTALLER_BYTES,
                                _GitHubRedirect, download_installer, launch_installer,
                                parse_installer_asset, helper_entry, _wait_for_parent_exit,
-                               discard_installer)
+                               discard_installer, cleanup_cached_installers)
 
 
 class InstalledUpdateTests(unittest.TestCase):
@@ -110,6 +110,61 @@ class InstalledUpdateTests(unittest.TestCase):
             with self.assertRaises(DownloadCancelled):
                 download_installer(self.asset(), self.repository, cache_dir=root, cancel=cancel)
             self.assertEqual(list(Path(root).iterdir()), [])
+
+    def test_cleanup_removes_obsolete_setups_but_preserves_newer_and_unrelated_files(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            def cached(folder, name):
+                path = root / folder / name
+                path.parent.mkdir(exist_ok=True)
+                path.write_bytes(self.payload)
+                return path
+            old = cached('download-old123', 'AutoE7-Setup-2026.11.14-r4.exe')
+            current = cached('download-now123', 'AutoE7-Setup-2026.11.14-r5.exe')
+            keep = [cached('download-new123', 'AutoE7-Setup-2026.11.14-r6.exe'),
+                    cached('download-now123', 'notes.txt'),
+                    cached('download-bad123', 'AutoE7-Setup-invalid.exe'),
+                    cached('manual', 'AutoE7-Setup-2026.11.14-r4.exe'),
+                    cached('download-part12', 'AutoE7-Setup-2026.11.14-r5.exe.part')]
+            cleanup_cached_installers('2026.11.14-r5', cache_dir=root)
+            self.assertFalse(old.exists())
+            self.assertFalse(old.parent.exists())
+            self.assertFalse(current.exists())
+            self.assertTrue(current.parent.exists())
+            self.assertTrue(all(path.exists() for path in keep))
+
+    def test_cleanup_retries_locked_setup_and_tolerates_persistent_lock(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            path = root / 'download-locked' / self.name
+            path.parent.mkdir()
+            path.write_bytes(self.payload)
+            original = discard_installer
+            calls = []
+            def locked_once(path, **kwargs):
+                calls.append(path)
+                if len(calls) == 1:
+                    raise PermissionError('Setup still running')
+                original(path, **kwargs)
+            with patch('installed_updates.discard_installer', side_effect=locked_once), \
+                    patch('installed_updates.time.sleep') as sleep:
+                cleanup_cached_installers('2026.11.14-r5', cache_dir=root)
+                sleep.assert_called_once_with(1)
+            self.assertEqual(len(calls), 2)
+            self.assertFalse(path.exists())
+            path.parent.mkdir()
+            path.write_bytes(self.payload)
+            with patch('installed_updates.discard_installer', side_effect=PermissionError), \
+                    patch('installed_updates.time.sleep'):
+                cleanup_cached_installers('2026.11.14-r5', cache_dir=root, attempts=2)
+            self.assertTrue(path.exists())
+
+    def test_cleanup_missing_cache_or_invalid_version_is_harmless(self):
+        with tempfile.TemporaryDirectory() as directory:
+            cleanup_cached_installers('2026.11.14-r5', cache_dir=Path(directory)/'missing')
+            with patch('installed_updates.discard_installer') as discard:
+                cleanup_cached_installers('invalid', cache_dir=directory)
+            discard.assert_not_called()
 
     def test_bad_downloads_leave_no_files(self):
         cases = [self.response(payload=b'bad'), self.response(payload=self.payload + b'x'),

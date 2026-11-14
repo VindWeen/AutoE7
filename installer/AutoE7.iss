@@ -50,8 +50,8 @@ Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs 
 Source: "installation.json"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{autoprograms}\AutoE7"; Filename: "{app}\AutoE7.exe"; WorkingDir: "{app}"; IconFilename: "{app}\AutoE7.exe"; AppUserModelID: "VindWeen.AutoE7"
-Name: "{autodesktop}\AutoE7"; Filename: "{app}\AutoE7.exe"; WorkingDir: "{app}"; IconFilename: "{app}\AutoE7.exe"; AppUserModelID: "VindWeen.AutoE7"; Tasks: desktopicon
+Name: "{autoprograms}\AutoE7"; Filename: "{app}\AutoE7.exe"; WorkingDir: "{app}"; IconFilename: "{app}\assets\branding\app.ico"; IconIndex: 0; AppUserModelID: "VindWeen.AutoE7"
+Name: "{autodesktop}\AutoE7"; Filename: "{app}\AutoE7.exe"; WorkingDir: "{app}"; IconFilename: "{app}\assets\branding\app.ico"; IconIndex: 0; AppUserModelID: "VindWeen.AutoE7"; Tasks: desktopicon
 
 [Run]
 Filename: "{app}\AutoE7.exe"; WorkingDir: "{app}"; Description: "Open AutoE7"; Flags: nowait postinstall skipifsilent

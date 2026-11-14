@@ -76,8 +76,11 @@ def apply_language(app):
 def build_ui(app):
     root = app.root
     asset_root = Path(sys.executable).resolve().parent if getattr(sys, 'frozen', False) else Path(__file__).resolve().parent
-    # Set the Windows icon for this window and future settings/update dialogs.
+    # Supply both window sizes directly, independently of Explorer's EXE cache.
     root.iconbitmap(default=str(asset_root / 'assets' / 'branding' / 'app.ico'))
+    icon = tk.PhotoImage(master=root, file=str(asset_root / 'assets' / 'branding' / 'app.png'))
+    root._app_icons = (icon, icon.subsample(8), icon.subsample(16))
+    root.iconphoto(True, *root._app_icons)
     root.title('AutoE7 · ' + BUILD)
     width = min(1040, max(900, root.winfo_screenwidth() - 80))
     height = min(780, max(620, root.winfo_screenheight() - 100))
