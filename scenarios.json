@@ -1,0 +1,354 @@
+{
+  "Đi Map": [
+    {
+      "id": "hero_friendship",
+      "image": "map_hero_friendship.png",
+      "rect": [539, 146, 978, 180],
+      "click": [756, 593],
+      "phases": ["result", "reward"],
+      "next": "$same",
+      "match": "tolerant_edges",
+      "threshold": 0.9,
+      "scales": [0.97, 1, 1.03]
+    },
+    {
+      "id": "connection_unlocked",
+      "image": "map_connection_unlocked.png",
+      "rect": [489, 179, 794, 212],
+      "click": [640, 515],
+      "phases": ["result", "reward"],
+      "next": "$same",
+      "match": "tolerant_edges",
+      "threshold": 0.9,
+      "scales": [0.97, 1, 1.03]
+    },
+    {
+      "id": "map_rank_up",
+      "image": "map_rank_up.png",
+      "rect": [595, 211, 680, 231],
+      "click": [636, 691],
+      "phases": ["battle", "result", "reward"],
+      "next": "$same",
+      "match": "tolerant_edges",
+      "threshold": 0.9,
+      "scales": [0.97, 1, 1.03]
+    },
+    {
+      "id": "story_clear",
+      "image": "story_clear.png",
+      "rect": [
+        550,
+        155,
+        725,
+        195
+      ],
+      "click": [
+        637,
+        513
+      ],
+      "phases": [
+        "reward"
+      ],
+      "next": "reward"
+    },
+    {
+      "id": "received_reward",
+      "image": "received_reward.png",
+      "rect": [
+        515,
+        150,
+        770,
+        190
+      ],
+      "click": [
+        638,
+        558
+      ],
+      "phases": [
+        "reward"
+      ],
+      "next": "reward"
+    },
+    {
+      "id": "skip_confirm",
+      "image": "skip_confirm.png",
+      "rect": [
+        690,
+        445,
+        805,
+        475
+      ],
+      "click": [
+        748,
+        458
+      ],
+      "phases": [
+        "battle"
+      ],
+      "next": "battle"
+    },
+    {
+      "id": "skip",
+      "image": "skip_text.png",
+      "rect": [
+        1187,
+        27,
+        1231,
+        53
+      ],
+      "click": [
+        1218,
+        39
+      ],
+      "phases": [
+        "battle"
+      ],
+      "next": "battle",
+      "threshold": 0.93,
+      "match": "tolerant_edges",
+      "search_margin": 24,
+      "scales": [
+        0.94,
+        0.97,
+        1,
+        1.03,
+        1.06
+      ]
+    },
+    {
+      "id": "clear",
+      "image": "clear.png",
+      "rect": [
+        515,
+        420,
+        773,
+        465
+      ],
+      "click": [
+        1240,
+        674
+      ],
+      "phases": [
+        "battle",
+        "result"
+      ],
+      "next": "result",
+      "threshold": 0.88,
+      "binary_threshold": 210,
+      "match": "tolerant_edges",
+      "scales": [0.97, 1, 1.03]
+    },
+    {
+      "id": "friend_cancel",
+      "image": "friend_cancel.png",
+      "rect": [
+        435,
+        501,
+        624,
+        557
+      ],
+      "click": [
+        530,
+        529
+      ],
+      "phases": [
+        "result",
+        "reward"
+      ],
+      "next": "$same"
+    },
+    {
+      "id": "mvp_confirm",
+      "image": "mvp_confirm.png",
+      "rect": [
+        1100,
+        640,
+        1195,
+        679
+      ],
+      "click": [
+        1166,
+        660
+      ],
+      "phases": [
+        "result",
+        "reward"
+      ],
+      "next": "reward"
+    },
+    {
+      "id": "ready",
+      "image": "ready.png",
+      "rect": [
+        1068,
+        643,
+        1148,
+        680
+      ],
+      "click": [
+        1120,
+        660
+      ],
+      "phases": [
+        "prepare",
+        "reward"
+      ],
+      "next": "support",
+      "max_error": 16
+    },
+    {
+      "id": "select_team",
+      "image": "select_team.png",
+      "rect": [
+        1010,
+        643,
+        1140,
+        680
+      ],
+      "click": [
+        1100,
+        660
+      ],
+      "phases": [
+        "support"
+      ],
+      "next": "team"
+    },
+    {
+      "id": "start_quest",
+      "image": "start_quest.png",
+      "rect": [
+        1085,
+        638,
+        1205,
+        675
+      ],
+      "click": [
+        1140,
+        656
+      ],
+      "phases": [
+        "support",
+        "team"
+      ],
+      "next": "battle"
+    },
+    {
+      "id": "start",
+      "image": "start.png",
+      "rect": [
+        1115,
+        640,
+        1195,
+        680
+      ],
+      "click": [
+        1150,
+        660
+      ],
+      "phases": [
+        "support",
+        "team"
+      ],
+      "next": "battle"
+    }
+  ],
+  "Đi Hunt (chưa cấu hình)": [],
+  "Abyss (Tháp)": [
+    {
+      "id": "abyss_ready",
+      "image": "abyss_ready.png",
+      "rect": [
+        1120,
+        650,
+        1190,
+        685
+      ],
+      "phases": [
+        "prepare",
+        "battle",
+        "reward"
+      ],
+      "threshold": 0.85,
+      "max_error": 40
+    },
+    {
+      "id": "abyss_next",
+      "image": "abyss_next.png",
+      "rect": [
+        1130,
+        645,
+        1230,
+        683
+      ],
+      "phases": [
+        "prepare",
+        "battle",
+        "reward"
+      ],
+      "threshold": 0.85,
+      "max_error": 40
+    },
+    {
+      "id": "abyss_battle",
+      "image": "abyss_battle.png",
+      "rect": [
+        1220,
+        15,
+        1260,
+        58
+      ],
+      "phases": [
+        "prepare",
+        "battle",
+        "reward"
+      ],
+      "threshold": 0.85,
+      "max_error": 40
+    },
+    {
+      "id": "abyss_available",
+      "image": "abyss_available.png",
+      "rect": [
+        872,
+        638,
+        933,
+        697
+      ],
+      "phases": [
+        "prepare",
+        "battle",
+        "reward"
+      ],
+      "threshold": 0.85,
+      "max_error": 40
+    },
+    {
+      "id": "abyss_available_alternate",
+      "observation": "available",
+      "image": "abyss_available_alternate.png",
+      "rect": [872, 638, 933, 697],
+      "phases": ["prepare", "battle", "reward"],
+      "threshold": 0.85,
+      "max_error": 40
+    },
+    {
+      "id": "abyss_spent",
+      "image": "abyss_spent.png",
+      "rect": [
+        875,
+        637,
+        932,
+        700
+      ],
+      "phases": [
+        "prepare",
+        "battle",
+        "reward"
+      ],
+      "threshold": 0.78,
+      "max_error": 40
+    }
+  ],
+  "Reroll Secret Shop": []
+}

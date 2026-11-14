@@ -1,0 +1,59 @@
+AutoE7 — Windows 10/11 64-bit
+
+1. Giải nén TOÀN BỘ file ZIP vào một thư mục trên máy.
+2. Mở AutoE7.exe. Không cần cài Python hay tải thêm thư viện.
+3. Mở game, đưa về màn Ready và chọn đúng cửa sổ Epic Seven trong tool.
+4. Lần đầu để “Chỉ nhận diện” bật để kiểm tra, sau đó Dừng và bỏ tích để click.
+5. Muốn chạy khi game bị cửa sổ khác che: bật “Không chiếm chuột” và
+   “Chụp trực tiếp cửa sổ khi bị che”. Không thu nhỏ game.
+6. Thử 1 vòng trước. Nhấn F8 để dừng khẩn cấp.
+
+Giữ nguyên AutoE7.exe, _internal, assets và scenarios.json cùng thư mục.
+Giữ cả release_config.json để tool biết repo GitHub và phiên bản hiện tại.
+Không chỉ gửi riêng file EXE. Không chạy trực tiếp bên trong ZIP.
+
+Cài đặt / Settings:
+- Nút Settings / Cài đặt ở góc trên bên phải đổi Tiếng Việt / English.
+- Lựa chọn lưu tại %LOCALAPPDATA%/AutoE7/settings.json, giữ khi đổi bản portable.
+- Có thể bật/tắt kiểm tra cập nhật khi mở hoặc kiểm tra thủ công trong Settings.
+- Khi có bản mới, bấm Mở trang tải để mở GitHub Releases. Tải ZIP portable
+  trong Assets, không chọn Source code. Dừng bản cũ, giải nén toàn bộ vào
+  thư mục mới rồi mở AutoE7.exe. Có thể giữ bản cũ để quay lại nếu cần.
+- Mất mạng vẫn dùng tool bình thường; tool không tự tải hay cài bản mới.
+- EXE cũ chưa có chức năng cập nhật cần tải bản có chức năng này thủ công lần đầu.
+
+Updates: Open Settings to change language or check for updates. When a newer
+release is available, choose Open download page. Download the portable ZIP
+under Assets, stop the old instance, extract everything to a new folder and
+launch AutoE7.exe. The app does not install updates automatically.
+
+Hỗ trợ: Đi Map, Start/Start Quest, Skip/Confirm, Clear, Friend Cancel và popup
+thưởng. Đi Hunt chưa được cấu hình. Bắt đầu từ màn Ready; chưa hỗ trợ tự
+phục hồi trạng thái khi bắt đầu giữa trận.
+
+Người dùng cần chọn cửa sổ game trên máy của mình. Nếu khung hình có viền
+hoặc thanh công cụ, chỉnh vùng game để chỉ chứa nội dung game gần tỷ lệ 16:9.
+Ngôn ngữ game và giao diện cần tương tự các mẫu tiếng Anh đã có.
+Khả năng nhận click nền phụ thuộc game; bản đóng gói không thay đổi điều này.
+
+Đây là bản portable chưa ký số, không phải bộ cài. Giữ nguyên toàn bộ thư mục.
+
+Abyss: chọn Abyss (Tháp), nhập số tầng hoặc tích chạy tới khi dừng.
+Dùng giám hộ giống ảnh mẫu, đội và auto battle đã chuẩn bị sẵn.
+Đếm tầng sau Next Floor trở về Ready; đủ tầng dừng trước Start tiếp.
+Đã kiểm tra ảnh và logic; cần thử 1 tầng thực tế trước khi chạy dài.
+
+Reroll Secret Shop: chọn item, nhập Skystone theo bội 3 hoặc để trống.
+Quét cả đầu/đáy shop trước mỗi refresh; hết ngân sách vẫn mua shop cuối.
+Lần đầu nên thử ngân sách 3 Skystone. F8 để dừng.
+
+Rookie Arena: mở sẵn danh sách đối thủ. Chọn vị trí ưu tiên hoặc tuần tự 1-2-3.
+Số trận tính cả thắng/thua; có thể tích chạy tới khi dừng.
+Hết lượt mặc định dừng; có thể bật tự mua, ưu tiên tim rồi SkyStone.
+Ngân sách SkyStone tính mỗi lần chạy; 0 chỉ mua bằng tim; 30/5 lượt.
+Thua cả 3 đối thủ thì dừng. Giữ nguyên đội đang chọn; tự bật auto khi vào trận.
+Thử Chỉ nhận diện rồi giới hạn 1 trận trước. Chưa kiểm thử mua trong game thật.
+
+Ban 2026.11.10-r2: moi lan Bam Bat dau se tu dua vung noi dung game ve
+1280x720 (khong tinh vien va thanh tieu de). Ho tro vien skill bac/xanh cua
+Landy, popup Hero Friendship truoc Victory, len rank va thuong len rank.

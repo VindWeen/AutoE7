@@ -1,0 +1,217 @@
+"""Presentation-only Vietnamese/English translations.
+
+Scenario keys and automation state remain unchanged. Unknown strings and all
+interpolated values are preserved; no substring replacement is used on paths,
+window titles, or other user data. Add whole-message templates for new logs.
+"""
+import re
+from string import Formatter
+
+
+CATALOGUE = {
+    '⚙ Settings / Cài đặt': '⚙ Settings',
+    'Cài đặt': 'Settings',
+    'Ngôn ngữ / Language': 'Language',
+    'Kiểm tra cập nhật khi mở tool': 'Check for updates on startup',
+    'Kiểm tra cập nhật': 'Check for updates',
+    'Tải bản mới từ GitHub Releases, giải nén vào thư mục mới rồi mở AutoE7.exe.': 'Download the new version from GitHub Releases, extract it into a new folder, then open AutoE7.exe.',
+    'Đóng': 'Close',
+    'Đang kiểm tra cập nhật…': 'Checking for updates…',
+    'Chưa cấu hình repo GitHub.': 'GitHub repository has not been configured.',
+    'Không lưu được cài đặt. Vui lòng kiểm tra quyền ghi.': 'Unable to save settings. Please check write permissions.',
+    'Có bản cập nhật mới': 'Update available',
+    'Bạn đang dùng phiên bản mới nhất.': 'You are using the latest version.',
+    'Chưa có bản phát hành công khai trên repo này.': 'This repository has no public release yet.',
+    'Không kiểm tra được cập nhật. Bạn vẫn có thể dùng tool và thử lại sau.': 'Unable to check for updates. You can keep using the tool and try again later.',
+    'Nội dung cập nhật': 'Release notes',
+    'Xem chi tiết trên GitHub Releases.': 'See details on GitHub Releases.',
+    'Dừng tool trước khi đổi bản. Tải ZIP portable trong Assets, giải nén toàn bộ vào thư mục mới rồi mở AutoE7.exe.': 'Stop the tool before switching versions. Download the portable ZIP under Assets, extract everything into a new folder, then open AutoE7.exe.',
+    'Mở trang tải': 'Open download page',
+    'Để sau': 'Later',
+    'Mở địa chỉ này trong trình duyệt:': 'Open this address in your browser:',
+    'Thiết lập và theo dõi phiên tự động': 'Configure and monitor automation',
+    'THIẾT LẬP': 'SETUP',
+    'Cửa sổ game': 'Game window',
+    'Làm mới': 'Refresh',
+    'Hoạt động': 'Activity',
+    'Số vòng': 'Runs',
+    'Số trận': 'Battles',
+    'Số tầng': 'Floors',
+    'Chạy tới khi dừng': 'Run until stopped',
+    'Món muốn mua': 'Items to buy',
+    'Ngân sách Skystone': 'Skystone budget',
+    'Bội số của 3 · Để trống để chạy tới khi dừng': 'Multiple of 3 · Leave empty to run until stopped',
+    'Cố định vị trí ưu tiên': 'Fixed preferred position',
+    'Tuần tự 1 → 2 → 3': 'Sequential 1 → 2 → 3',
+    'Vị trí ưu tiên': 'Preferred position',
+    'Tự mua lượt khi hết · ưu tiên tim': 'Buy flags when empty · use hearts first',
+    'Ngân sách SkyStone / lần chạy': 'Skystone budget per session',
+    '30 SkyStone / 5 lượt · 0: chỉ mua bằng tim': '30 Skystone / 5 flags · 0: use hearts only',
+    'CÁCH CHẠY': 'RUN OPTIONS',
+    'Chỉ nhận diện · không click': 'Detection only · no clicks',
+    'Không chiếm chuột': 'Keep mouse free',
+    'Chụp cửa sổ khi bị che': 'Capture covered window',
+    'Không thu nhỏ game trong khi chạy.': 'Keep the game window restored while running.',
+    'Vùng game nâng cao': 'Advanced game region',
+    'Trái, trên, phải, dưới (tỷ lệ 0–1)': 'Left, top, right, bottom (ratio 0–1)',
+    'TRẠNG THÁI': 'STATUS',
+    'Sẵn sàng': 'Ready',
+    'Nhật ký hoạt động': 'Activity log',
+    'Bắt đầu': 'Start',
+    'Dừng': 'Stop',
+    'F8  ·  Dừng khẩn cấp': 'F8  ·  Emergency stop',
+    'Đi Map': 'Adventure',
+    'Đi Hunt': 'Hunt',
+    'Abyss (Tháp)': 'Abyss (Tower)',
+    'Quét shop hiện tại và mua các món đã chọn.': 'Scan the current shop and buy selected items.',
+    'Mở sẵn danh sách Rookie Arena. Giữ nguyên đội hình đang chọn.': 'Open the Rookie Arena list first. Keep the selected team.',
+    'Hoàn thành từng tầng cho đến giới hạn đã chọn.': 'Clear floors up to the selected limit.',
+    'Chọn số vòng hoặc tích Chạy tới khi dừng.': 'Choose the number of runs or enable Run until stopped.',
+    'Chọn số vòng muốn chạy.': 'Choose the number of runs.',
+    'Đã dừng.': 'Stopped.',
+    'Cửa sổ game đã đóng hoặc đang thu nhỏ.': 'The game window is closed or minimized.',
+    'Vùng game quá nhỏ.': 'The game region is too small.',
+    'AutoE7 — Kịch bản nhận diện hình ảnh': 'AutoE7 — Visual automation',
+    'Hãy mở game và chọn cửa sổ Epic Seven trước khi bắt đầu.': 'Open the game and select the Epic Seven window before starting.',
+    'Vùng game hoặc số vòng không hợp lệ.': 'Invalid game region or run count.',
+    'Kịch bản Đi Hunt chưa có ảnh mẫu. Hãy bổ sung quy tắc trước.': 'Hunt has no reference images yet. Add rules first.',
+    'Bật Không chiếm chuột để chạy click khi game bị che.': 'Enable Keep mouse free to click while the game is covered.',
+    'Đang khởi động…\nBắt đầu nhận diện sau 2 giây. F8 để dừng.': 'Starting…\nDetection starts in 2 seconds. Press F8 to stop.',
+    'Bắt đầu sau 2 giây. F8 để dừng; timeout không tiến triển: 10 phút.': 'Starting in 2 seconds. F8 to stop; no-progress timeout: 10 minutes.',
+    'Gửi click qua cửa sổ, không di chuyển chuột. Cần thử xem game có nhận input này không.': 'Sending window clicks without moving the mouse. Check that the game accepts this input.',
+    'Windows Graphics Capture: không thu nhỏ. Ảnh đen tạm thời sẽ chờ loading, tối đa 45 giây.': 'Windows Graphics Capture: keep the window restored. Temporary black frames wait for loading, up to 45 seconds.',
+    'Không thể bắt đầu': 'Unable to start',
+    'Đã dừng bằng F8.': 'Stopped with F8.',
+    'Dừng: 10 phút không có tiến triển.': 'Stopped: no progress for 10 minutes.',
+    'Tạm chờ: đưa cửa sổ game lên trước.': 'Waiting: bring the game window to the foreground.',
+    'Đã hoàn thành số vòng yêu cầu.': 'Completed the requested runs.',
+    'Chưa nhận diện được màn game.': 'Game screen not recognized yet.',
+    'Đã thấy danh sách nhưng chưa đọc được số lượt.': 'List detected; unable to read the flag count yet.',
+    'Đã hoàn thành số trận yêu cầu.': 'Completed the requested battles.',
+    'Hết lượt đánh.': 'No battle flags remaining.',
+    'Đã thua cả 3 đối thủ.': 'Lost against all 3 opponents.',
+    'Hết ngân sách SkyStone.': 'Skystone budget exhausted.',
+    'Không mua thêm lượt được hoặc không xác minh được tài nguyên.': 'Unable to buy more flags or verify resources.',
+    'Chưa xác minh được mua lượt; dừng để tránh mua trùng.': 'Flag purchase not verified; stopped to avoid a duplicate purchase.',
+    'Đã hết lượt refresh trả Gold trong ngày.': 'No paid Gold refreshes remaining today.',
+    'Chưa xác minh được refresh danh sách; dừng để tránh xác nhận trùng.': 'List refresh not verified; stopped to avoid duplicate confirmation.',
+    'Không xác nhận được auto đã bật trong thời gian chờ.': 'Auto could not be confirmed within the timeout.',
+    'Không xác nhận được bước tiếp theo trong thời gian chờ.': 'The next step could not be confirmed within the timeout.',
+    'Đã hoàn thành số tầng Abyss yêu cầu.': 'Completed the requested Abyss floors.',
+    'Dừng Abyss: chưa xác nhận chuyển màn sau 45 giây và tối đa 5 lần thử lại.': 'Abyss stopped: transition not confirmed after 45 seconds and up to 5 retries.',
+    'Dừng Abyss: game mất focus trước khi click.': 'Abyss stopped: game lost focus before clicking.',
+    'Dừng Shop: game mất focus trước thao tác.': 'Shop stopped: game lost focus before the action.',
+    'Skystone phải là số nguyên dương chia hết cho 3; để trống để chạy tới khi dừng.': 'Skystone must be a positive integer divisible by 3; leave empty to run until stopped.',
+    'Chọn ít nhất một item cần mua.': 'Select at least one item to buy.',
+    'Popup mua không khớp item đã chọn; chưa xác nhận Buy.': 'Purchase popup does not match the selected item; Buy was not confirmed.',
+    'Item trong popup mua đã thay đổi.': 'The item in the purchase popup changed.',
+    'Đã mua: dòng chuyển 0/1': 'Purchased: row changed to 0/1',
+    'Mở Refresh': 'Open Refresh',
+    'Xác nhận Refresh (3 Skystone)': 'Confirm Refresh (3 Skystone)',
+    'đang chờ shop': 'waiting for shop',
+    'đầu danh sách': 'top of the list',
+    'cuối danh sách': 'bottom of the list',
+    'xác nhận Buy': 'Buy confirmation',
+    'xác nhận Refresh': 'Refresh confirmation',
+    'Click trước chưa được thả.': 'The previous click has not been released.',
+    'Cửa sổ nhận click không còn hợp lệ.': 'The click target window is no longer valid.',
+    'Tọa độ click ngoài vùng game.': 'Click coordinates are outside the game region.',
+    'Không gửi được vị trí chuột tới game.': 'Unable to send the mouse position to the game.',
+    'Không gửi được nhấn chuột tới game.': 'Unable to send mouse-down to the game.',
+    'Không gửi được thả chuột tới game.': 'Unable to send mouse-up to the game.',
+    'Tọa độ cuộn ngoài vùng game.': 'Scroll coordinates are outside the game region.',
+    'Không lấy được vị trí cửa sổ để cuộn.': 'Unable to get the window position for scrolling.',
+    'Vị trí cửa sổ ngoài giới hạn cuộn nền.': 'The window position is outside the background scroll limits.',
+    'Không gửi được vị trí chuột để cuộn.': 'Unable to send the mouse position for scrolling.',
+    'Không gửi được cuộn nền tới game.': 'Unable to send background scrolling to the game.',
+    'Cửa sổ game đã đóng; hãy chọn lại cửa sổ.': 'The game window closed; select it again.',
+    'Không đọc được kích thước cửa sổ game.': 'Unable to read the game window size.',
+    'Không resize được cửa sổ game về 1280 × 720.': 'Unable to resize the game window to 1280 × 720.',
+    'Đang chụp nội dung cửa sổ…': 'Capturing window content…',
+    'Thiếu windows-capture. Hãy mở lại run.bat để cài thư viện.': 'windows-capture is missing. Open run.bat again to install dependencies.',
+    'Không lấy được biên cửa sổ game.': 'Unable to get game window bounds.',
+    'Cửa sổ game không còn hợp lệ.': 'The game window is no longer valid.',
+    'Phiên chụp cửa sổ đã đóng.': 'The window capture session closed.',
+    'Phiên chụp cửa sổ chưa được khởi tạo.': 'The window capture session has not started.',
+    'Ảnh game đen/trống liên tục quá 45 giây. Hãy kiểm tra game hoặc chế độ chụp.': 'Game frames have been black/empty for over 45 seconds. Check the game or capture mode.',
+}
+
+# Fields capture opaque values. Only explicitly listed fields may themselves be
+# translated (nested status/error descriptions), keeping paths and titles safe.
+TEMPLATES = [
+    ('Phiên bản hiện tại: {version}', 'Current version: {version}'),
+    ('Có bản cập nhật mới: {version}', 'Update available: {version}'),
+    ('AutoE7 {version}. Sẵn sàng. Chọn hoạt động và kiểm tra cấu hình trước khi bắt đầu.', 'AutoE7 {version}. Ready. Choose an activity and check settings before starting.'),
+    ('Khuôn game: {old} → {new} (vùng client).', 'Game size: {old} → {new} (client area).'),
+    ('Thắng {wins} · Thua {losses} · Tổng {count} trận', 'Wins {wins} · Losses {losses} · Total {count} battles'),
+    ('Thiếu ảnh mẫu: {path}', 'Missing reference image: {path}'),
+    ('Thử lại {action} lần {attempt}/3: vẫn nhận diện màn cũ, chưa thấy bước tiếp theo.', 'Retry {action} attempt {attempt}/3: previous screen still detected; next step not visible.'),
+    ('Dừng: chưa xác nhận được màn kế tiếp sau click {action} trong 12 giây.', 'Stopped: next screen not confirmed within 12 seconds after clicking {action}.'),
+    ('Đã gửi click, chờ màn kế tiếp: {action}', 'Click sent, waiting for next screen: {action}'),
+    ('Đã nhận diện bước kế tiếp sau click: {action}', 'Next step detected after clicking: {action}'),
+    ('Nút đã biến mất sau click: {action}', 'Button disappeared after clicking: {action}'),
+    ('Vòng {count}/{limit} · {phase} · đang chờ nhận diện\nGần nhất: {key} {score}', 'Run {count}/{limit} · {phase} · waiting for detection\nClosest: {key} {score}'),
+    ('Nhận diện: {key}', 'Detected: {key}'),
+    ('Hoàn thành vòng {count}/{limit}', 'Completed run {count}/{limit}'),
+    ('Gửi click nền: {key} · HWND={hwnd} · client=({coords})', 'Background click: {key} · HWND={hwnd} · client=({coords})'),
+    ('Arena nhận diện: màn={screen} · lượt={flags} · chọn={chosen} · auto={auto} · nguồn={source}', 'Arena detected: screen={screen} · flags={flags} · selected={chosen} · auto={auto} · source={source}'),
+    ('Đã lưu ảnh chẩn đoán: {path}', 'Diagnostic image saved: {path}'),
+    ('Không lưu được ảnh chẩn đoán: {error}', 'Unable to save diagnostic image: {error}'),
+    ('Rookie Arena · chỉ nhận diện\nMàn: {screen} · lượt: {flags} · ô thua: {failed}\nAuto: {auto} · tiền đã chọn: {currency}', 'Rookie Arena · detection only\nScreen: {screen} · flags: {flags} · lost slots: {failed}\nAuto: {auto} · selected currency: {currency}'),
+    ('Đang đánh · auto: {auto} · đã gửi click: {sent}', 'In battle · auto: {auto} · click sent: {sent}'),
+    ('Màn: {screen} · lượt: {flags} · {state}', 'Screen: {screen} · flags: {flags} · {state}'),
+    ('Rookie Arena · trận {count}/{limit} · Thắng {wins} · Thua {losses}\n{spent}/{budget} SkyStone · {detail}', 'Rookie Arena · battle {count}/{limit} · Wins {wins} · Losses {losses}\n{spent}/{budget} SkyStone · {detail}'),
+    ('Rookie Arena: {detail}', 'Rookie Arena: {detail}'),
+    ('Shop: {detail}', 'Shop: {detail}'),
+    ('Shop · chỉ nhận diện · {detail}', 'Shop · detection only · {detail}'),
+    ('Đã dùng đủ {spent} Skystone và quét/mua xong shop cuối. {counts}', 'Used {spent} Skystone and finished scanning/buying the final shop. {counts}'),
+    ('Dừng Shop: {detail}', 'Shop stopped: {detail}'),
+    ('Abyss · chỉ nhận diện: {visible}', 'Abyss · detection only: {visible}'),
+    ('Abyss · tầng {count}/{limit} · {state}', 'Abyss · floor {count}/{limit} · {state}'),
+    ('Không xác nhận được bước {state} trong 25 giây.', 'Step {state} was not confirmed within 25 seconds.'),
+    ('Đã xác nhận {detail}', 'Confirmed {detail}'),
+    ('Không xác nhận được {detail} sau 5 lần cuộn.', 'Unable to confirm {detail} after 5 scrolls.'),
+    ('Cuộn tới {detail}', 'Scroll to {detail}'),
+    ('Mở mua {item}', 'Open purchase for {item}'),
+    ('Xác nhận mua {item}', 'Confirm purchase of {item}'),
+    ('Đã refresh: {spent} Skystone', 'Refreshed: {spent} Skystone'),
+    ('Không xác nhận được {detail} sau 3 lần thử lại.', 'Unable to confirm {detail} after 3 retries.'),
+    ('Thử lại {detail} {attempt}/3', 'Retry {detail} {attempt}/3'),
+    ('Game chưa nhận kích thước 1280 × 720 (hiện {width} × {height}).', 'Game has not accepted size 1280 × 720 (currently {width} × {height}).'),
+    ('Chờ chuyển cảnh/loading: ảnh đang tối ({seconds}/45 giây)…', 'Waiting for transition/loading: dark frame ({seconds}/45 seconds)…'),
+    ('Đang chờ ảnh cửa sổ cập nhật ({age}/{timeout} giây)…', 'Waiting for updated window frame ({age}/{timeout} seconds)…'),
+    ('Không nhận được ảnh game cập nhật trong {timeout} giây. Dừng để tránh click theo ảnh cũ.', 'No updated game frame received for {timeout} seconds. Stopped to avoid clicking based on an old frame.'),
+    ('Lỗi: {error}', 'Error: {error}'),
+]
+
+
+def _compile(template):
+    parts = []
+    for literal, name, _, _ in Formatter().parse(template):
+        parts.append(re.escape(literal))
+        if name is not None:
+            parts.append('(?P<' + name + '>.*?)')
+    return re.compile(''.join(parts), re.DOTALL)
+
+
+_PATTERNS = [(_compile(source), target) for source, target in TEMPLATES]
+
+
+def translate(text, language='vi'):
+    """Translate a complete UI message; preserve unknown text and data values."""
+    if language != 'en' or not isinstance(text, str) or not text:
+        return text
+    if text in CATALOGUE:
+        return CATALOGUE[text]
+    for pattern, target in _PATTERNS:
+        match = pattern.fullmatch(text)
+        if match:
+            fields = match.groupdict()
+            for name in ('detail', 'error'):
+                if name in fields:
+                    fields[name] = translate(fields[name], language)
+            return target.format_map(fields)
+    # Stopping may append the arena summary to an otherwise complete message.
+    if '\n' in text:
+        return '\n'.join(translate(line, language) for line in text.split('\n'))
+    return text

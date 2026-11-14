@@ -1,0 +1,40 @@
+__pycache__/
+.capture-deps/
+.venv/
+.build-deps/
+build/
+dist/
+release/
+# Build configuration is source; keep AutoE7.spec in the repository.
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+venv/
+env/
+
+# Generated distributions and archives
+*.exe
+*.zip
+
+# Local diagnostics, reports, and unrelated research/backups
+*.log
+/diagnostics/
+/self-test.json
+/research_epic7/
+*.bak
+*.tmp
+
+# Local secrets and editor/OS files
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+Desktop.ini
