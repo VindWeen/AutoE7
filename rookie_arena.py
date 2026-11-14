@@ -22,6 +22,7 @@ class RookieArenaRunner:
         'promotion_confirm': (640, 665), 'reward_close': (640, 550),
         'friendship_close': (755, 590),
         'open_refresh': (880, 115), 'confirm_refresh': (813, 499),
+        'cancel_refresh': (484, 499),
     }
     # Click the opponent name area: x=640 intersects the first hero portrait
     # and can open hero details instead of selecting the opponent row.
@@ -40,6 +41,7 @@ class RookieArenaRunner:
         self.signature = None
         self.chosen = None
         self.state = 'list'
+        self.resume_pending = True
         self.pending = None
         self.friendship_pending = None
         self.auto_used = False
@@ -111,6 +113,31 @@ class RookieArenaRunner:
         if screen == 'list' and obs.get('purchase_open_point') is not None:
             self.purchase_open_point = obs['purchase_open_point']
 
+        # A new run has no trustworthy record of earlier clicks or spending.
+        # Adopt only a positively identified screen; ambiguous resource dialogs
+        # return to the list before the current refill policy is evaluated.
+        if self.resume_pending:
+            if self.state != 'list' or self.pending is not None:
+                self.resume_pending = False
+            elif screen in ('list', 'team', 'battle', 'victory', 'defeat',
+                            'promotion', 'promotion_rewards', 'friendship',
+                            'purchase', 'refresh'):
+                self.resume_pending = False
+                self.progress_at = now
+                if screen == 'team':
+                    self.state = 'selected'
+                elif screen in ('battle', 'victory', 'defeat', 'friendship'):
+                    self.state = 'battle'
+                    self.battle_at = now
+                elif screen in ('promotion', 'promotion_rewards'):
+                    self.state = 'victory'
+                    event = 'promotion_confirm' if screen == 'promotion' else 'reward_close'
+                    return self._click(event, now, 'list')
+                elif screen == 'purchase':
+                    return self._click('close_purchase', now, 'list')
+                elif screen == 'refresh':
+                    return self._click('cancel_refresh', now, 'list')
+
         if self.state == 'refresh_wait':
             signature=obs.get('signature')
             # Portrait animation can produce a different hash on each frame;
@@ -161,6 +188,10 @@ class RookieArenaRunner:
             self.progress_at = now
             if self.pending is not None:
                 self.pending['began'] = self.pending['sent'] = now
+            elif screen == 'list' and self.state == 'battle':
+                # A run started on a notification may already be past Confirm.
+                # Without a witnessed result, do not invent a win or loss.
+                self.state = 'list'
         if screen == 'friendship' and (self.state in ('battle', 'victory', 'defeat')):
             self.friendship_pending = dict(sent=now, began=now, attempts=1)
             return self._click('friendship_close', now)
@@ -230,7 +261,8 @@ class RookieArenaRunner:
             source = {'challenge': 'list', 'start': 'team',
                       'confirm': self.state, 'open_purchase': 'list',
                       'close_purchase': 'purchase', 'promotion_confirm': 'promotion',
-                      'reward_close': 'promotion_rewards', 'open_refresh': 'list'}[p['event']]
+                      'reward_close': 'promotion_rewards', 'open_refresh': 'list',
+                      'cancel_refresh': 'refresh'}[p['event']]
             if screen == source and now - p['sent'] >= 4 and p['attempts'] < 3:
                 if p['event'] == 'confirm' and not obs.get('confirm_visible', True):
                     return None, None

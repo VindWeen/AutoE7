@@ -251,6 +251,26 @@
         "team"
       ],
       "next": "battle"
+    },
+    {
+      "id": "lobby_episode",
+      "image": "episode/episode_button.png",
+      "match": "episode_lobby",
+      "rect": [1126, 170, 1238, 202],
+      "click": [1180, 185],
+      "phases": ["prepare", "lobby"],
+      "next": "prepare",
+      "threshold": 0.9
+    },
+    {
+      "id": "lobby_wake",
+      "image": "episode/lobby_anchor.png",
+      "match": "episode_lobby",
+      "rect": [180, 145, 325, 255],
+      "click": [640, 580],
+      "phases": ["prepare", "lobby"],
+      "next": "lobby",
+      "threshold": 0.9
     }
   ],
   "Đi Hunt (chưa cấu hình)": [],

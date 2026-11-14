@@ -3,6 +3,101 @@ from rookie_arena import RookieArenaRunner
 
 
 class ArenaTests(unittest.TestCase):
+    def test_fresh_run_adopts_team_and_battle_without_challenging_again(self):
+        r = RookieArenaRunner(total=1)
+        self.assertEqual(self.see(r, 'team'), 'start')
+        self.assertEqual(r.count, 0)
+        self.assertEqual(self.see(r, 'battle', auto_on=True), 'confirmed')
+        self.assertEqual(self.finish(r, victory=True), 'done')
+        self.assertEqual((r.count, r.wins), (1, 1))
+        r = RookieArenaRunner()
+        self.assertIsNone(self.see(r, 'battle', auto_on=True))
+        self.assertEqual(r.state, 'battle')
+        self.assertIsNone(self.see(r, 'battle', auto_on=True))
+        self.assertTrue(r.auto_verified)
+        self.assertFalse(r.auto_used)
+
+    def test_fresh_run_results_count_once_at_list(self):
+        for screen, wins, losses in (('victory', 1, 0), ('defeat', 0, 1),
+                                      ('promotion', 1, 0), ('promotion_rewards', 1, 0)):
+            with self.subTest(screen=screen):
+                r = RookieArenaRunner(total=1)
+                self.assertIn(self.see(r, screen),
+                              ('confirm', 'promotion_confirm', 'reward_close'))
+                self.assertEqual(r.count, 0)
+                self.assertEqual(self.see(r, 'list', flags=4), 'done')
+                self.assertEqual((r.count, r.wins, r.losses), (1, wins, losses))
+                self.assertEqual(self.see(r, 'list', flags=4), 'done')
+                self.assertEqual(r.count, 1)
+
+    def test_resumed_result_waits_for_visible_confirm(self):
+        r = RookieArenaRunner()
+        self.assertIsNone(self.see(r, 'victory', confirm_visible=False))
+        self.assertEqual(r.state, 'battle')
+        self.assertEqual(self.see(r, 'victory', confirm_visible=True), 'confirm')
+
+    def test_fresh_friendship_can_resume_result_or_list(self):
+        for next_screen in ('victory', 'list'):
+            with self.subTest(next_screen=next_screen):
+                r = RookieArenaRunner(total=1)
+                self.assertEqual(self.see(r, 'friendship'), 'friendship_close')
+                self.assertEqual(r.count, 0)
+                if next_screen == 'victory':
+                    self.assertEqual(self.see(r, 'victory'), 'confirm')
+                    self.assertEqual(self.see(r, 'list', flags=4), 'done')
+                else:
+                    self.assertEqual(self.see(r, 'list', flags=4), 'select_1')
+                    self.assertEqual((r.count, r.wins, r.losses), (0, 0, 0))
+
+    def test_fresh_purchase_closes_without_repeating_or_charging_prior_buy(self):
+        for refill in (False, True):
+            with self.subTest(refill=refill):
+                r = RookieArenaRunner(refill=refill, budget=30)
+                self.assertEqual(self.see(r, 'purchase', flags=5,
+                    friendship_available=False, skystone_affordable=True,
+                    selected_currency='skystone'), 'close_purchase')
+                self.assertIsNone(self.see(r, 'purchase', flags=5))
+                self.assertEqual(self.see(r, 'list', flags=5), 'confirmed')
+                self.assertEqual(r.spent, 0)
+                self.assertEqual(self.see(r, 'list', flags=5), 'select_1')
+
+    def test_resumed_purchase_rechecks_current_refill_policy_from_list(self):
+        for refill, expected in ((False, 'no_flags'), (True, 'open_purchase')):
+            with self.subTest(refill=refill):
+                r = RookieArenaRunner(refill=refill, budget=30)
+                self.assertEqual(self.see(r, 'purchase'), 'close_purchase')
+                self.assertEqual(self.see(r, 'list', flags=0), 'confirmed')
+                self.assertEqual(self.see(r, 'list', flags=0), expected)
+                self.assertEqual(r.spent, 0)
+
+    def test_fresh_refresh_cancels_before_reconsidering_failed_roster(self):
+        for free in (True, False):
+            with self.subTest(free=free):
+                r = RookieArenaRunner()
+                self.assertEqual(self.see(r, 'refresh', refresh_free=free,
+                    refresh_remaining=30, refresh_confirm_visible=True), 'cancel_refresh')
+                self.assertEqual(r.pending['expected'], 'list')
+                self.assertEqual(self.see(r, 'list', flags=3, signature='old',
+                                          failed={1, 2, 3}), 'confirmed')
+                self.assertEqual(self.see(r, 'list', flags=3, signature='old',
+                                          failed={1, 2, 3}), 'open_refresh')
+                self.assertEqual(r.count, 0)
+
+    def test_unknown_start_waits_and_recovered_modal_retries_are_bounded(self):
+        r = RookieArenaRunner()
+        self.assertIsNone(self.see(r, None))
+        self.assertTrue(r.resume_pending)
+        self.assertEqual(self.see(r, 'team'), 'start')
+        for screen, event in (('purchase', 'close_purchase'), ('refresh', 'cancel_refresh')):
+            r = RookieArenaRunner()
+            self.assertEqual(self.see(r, screen), event)
+            began = r.pending['began']
+            self.assertEqual(r.step({'screen': screen}, began + 4.1)[0], event)
+            self.assertEqual(r.step({'screen': screen}, began + 8.2)[0], event)
+            self.assertIsNone(r.step({'screen': screen}, began + 12)[0])
+            self.assertEqual(r.step({'screen': screen}, began + 46)[0], 'timeout')
+            self.assertEqual((r.count, r.spent), (0, 0))
+
     def test_refresh_verification_accepts_animated_roster_or_cleared_defeats(self):
         for initial_rows,signatures in (({1,2,3},('old','old')),
                                         (set(),('new-animation-a','new-animation-b'))):

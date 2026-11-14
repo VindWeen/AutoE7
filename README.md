@@ -6,10 +6,10 @@ Công cụ tự động hóa Epic Seven trên Windows bằng nhận diện hình
 
 ## Tính năng
 
-- **Episode** — lặp lại map đang chọn, xử lý Skip và các màn kết quả.
-- **Abyss** — chạy theo số tầng, chuyển tầng và sử dụng Guardian.
-- **Rookie Arena** — chọn đối thủ, theo dõi thắng/thua và quản lý lượt đánh.
-- **Secret Shop** — làm mới, mua vật phẩm đã chọn theo ngân sách Skystone.
+- **Episode** — vào từ sảnh hoặc nhận diện màn đang chạy để tiếp tục; lặp lại map đang chọn, xử lý Skip và kết quả.
+- **Abyss** — vào từ sảnh qua Battle, chọn Abyss thường; chuyển tầng và sử dụng Guardian.
+- **Rookie Arena** — vào từ sảnh qua Arena; chọn đối thủ, theo dõi thắng/thua và quản lý lượt đánh.
+- **Secret Shop** — mở từ sảnh, làm mới và mua vật phẩm đã chọn theo ngân sách Skystone.
 - Chế độ chỉ nhận diện, click không chiếm chuột và chụp cửa sổ khi bị che.
 - Kiểm tra phiên bản mới từ GitHub Releases; **F8** để dừng tác vụ.
 
@@ -39,9 +39,13 @@ Tải ZIP tại [GitHub Releases](https://github.com/VindWeen/AutoE7/releases), 
 3. Thử **Chỉ nhận diện** trước, sau đó tắt tùy chọn này để cho phép click.
 4. Bấm **Bắt đầu**. Dùng **Dừng** hoặc **F8** để kết thúc.
 
-Mở **Cài đặt** ở góc phải để đổi ngôn ngữ hoặc kiểm tra cập nhật. Khi có bản mới, tool mở trang tải theo lựa chọn của bạn.
+Mỗi lần mở, tool kiểm tra cập nhật một lần ở chế độ nền và hiển thị kết quả cạnh tiêu đề **AutoE7**. Có bản mới thì bấm thông báo để xem và mở trang tải; mất mạng vẫn dùng bình thường. Mở **Cài đặt** ở góc phải để đổi ngôn ngữ, bật/tắt kiểm tra tự động hoặc kiểm tra thủ công.
 
 Cấu hình từng mode được tự lưu tại `%LOCALAPPDATA%\AutoE7\settings.json` và khôi phục khi chuyển mode hoặc mở lại tool. Tool nhớ mode gần nhất và chờ bạn bấm **Bắt đầu**.
+
+Episode hỗ trợ sảnh đang ẩn nút, sảnh có menu, Ready, chọn đội, trận đang chạy và các màn kết quả đã có mẫu. Khi bắt đầu lại, số vòng tính cho phiên mới; lượt đang dở được tính khi hoàn tất và trở về Ready. Màn chưa nhận diện được sẽ chờ, không click dò.
+
+Secret Shop, Rookie Arena và Abyss cũng có thể bắt đầu từ sảnh hoặc tiếp tục ở màn đã có mẫu nhận diện. Abyss tự chọn Normal, kéo danh sách Battle sang phải và vào nhánh Abyss thường. Chuẩn bị sẵn đội hình và thiết lập chiến đấu cần dùng. Mỗi lần Bắt đầu dùng giới hạn/ngân sách mới; popup mua hoặc Refresh có sẵn sẽ được đóng rồi kiểm tra lại, không suy đoán chi tiêu trước đó.
 
 ## Lưu ý
 

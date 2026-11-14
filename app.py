@@ -25,12 +25,20 @@ from app_settings import load_settings
 from i18n import translate
 from settings_ui import PreferencesController
 from mode_preferences import ModePreferences
+from episode_vision import EpisodeVision
+from mode_navigation import ModeNavigation
+from navigation_vision import NavigationVision
 
 ROOT = Path(sys.executable).resolve().parent if getattr(sys, 'frozen', False) else Path(__file__).resolve().parent
 RETRY_ACTIONS = {'ready', 'select_team', 'start', 'start_quest', 'skip', 'clear', 'map_rank_up',
                  'mvp_confirm', 'skip_confirm', 'friend_cancel', 'story_clear', 'received_reward',
-                 'connection_unlocked', 'hero_friendship'}
-REQUIRE_NEXT_SCREEN = {'ready', 'select_team', 'clear', 'mvp_confirm', 'map_rank_up'}
+                 'connection_unlocked', 'hero_friendship', 'lobby_wake', 'lobby_episode'}
+REQUIRE_NEXT_SCREEN = {'ready', 'select_team', 'clear', 'mvp_confirm', 'map_rank_up',
+                       'lobby_wake', 'lobby_episode'}
+EPISODE_RESULTS = {'clear', 'mvp_confirm', 'friend_cancel', 'story_clear', 'received_reward',
+                   'connection_unlocked', 'hero_friendship', 'map_rank_up'}
+EPISODE_DIALOGS = {'hero_friendship', 'connection_unlocked', 'map_rank_up', 'story_clear',
+                   'received_reward', 'friend_cancel', 'skip_confirm', 'mvp_confirm'}
 user = C.windll.user32
 user.SetProcessDPIAware()
 user.GetForegroundWindow.restype = W.HWND
@@ -127,6 +135,7 @@ class App:
             self.hwnd = self.items[self.window.current()][1]
             is_shop = self.scenario.get() == 'Reroll Secret Shop'
             is_arena = self.scenario.get() == 'Rookie Arena'
+            self.episode_active = self.scenario.get() == 'Đi Map'
             self.total = (None if self.scenario.get() == 'Đi Map' and self.forever.get() else
                           1 if is_shop or self.scenario.get() in ('Abyss (Tháp)', 'Rookie Arena') and self.forever.get()
                           else int(self.limit.get()))
@@ -151,7 +160,15 @@ class App:
             self.capture_covered = self.hidden_capture.get()
             if self.capture_covered and not self.background_input and not self.preview:
                 raise ValueError('Bật Không chiếm chuột để chạy click khi game bị che.')
-            self.phase = 'prepare'; self.count = 0
+            # Starting Episode may resume a quest at any supported screen.
+            # Unknown/normal combat frames cause no clicks until a known action appears.
+            self.phase = 'resume' if self.episode_active else 'prepare'
+            self.count = 0
+            self.episode_round_pending = False
+            entry_mode = {'Reroll Secret Shop': 'shop', 'Rookie Arena': 'arena',
+                          'Abyss (Tháp)': 'abyss'}.get(self.scenario.get())
+            self.navigation = ModeNavigation(entry_mode) if entry_mode else None
+            self.navigation_vision = NavigationVision(ROOT) if entry_mode else None
             self.abyss = AbyssRunner(None if self.forever.get() else self.total) if self.scenario.get() == 'Abyss (Tháp)' else None
             self.last_action = time.monotonic(); self.next_action = self.last_action + 2
             self.arena_observation = None
@@ -175,6 +192,8 @@ class App:
             set_running_ui(self, True)
             self.status.set('Đang khởi động…\nBắt đầu nhận diện sau 2 giây. F8 để dừng.')
             self.log('Bắt đầu sau 2 giây. F8 để dừng; timeout không tiến triển: 10 phút.')
+            if self.episode_active:
+                self.log('Episode: tự nhận diện sảnh hoặc màn đang chạy để tiếp tục. Số vòng tính cho lần Bắt đầu này.')
             if self.background_input:
                 self.log('Gửi click qua cửa sổ, không di chuyển chuột. Cần thử xem game có nhận input này không.')
             if self.capture_covered:
@@ -186,6 +205,7 @@ class App:
     def stop(self, reason):
         if self.running:
             self.background_clicker.release()
+            self.release_navigation_drag()
             self.running = False; self.window_capture.close()
             set_running_ui(self, False)
             self.log(reason)
@@ -200,6 +220,7 @@ class App:
                 'Không lưu được cấu hình hoạt động. Vui lòng kiểm tra quyền ghi.', self.language), parent=self.root)
         self.preferences.close()
         self.background_clicker.release()
+        self.release_navigation_drag()
         self.running = False
         self.window_capture.close()
         self.root.destroy()
@@ -207,6 +228,10 @@ class App:
     def detect(self, frame, rule):
         # Normalize game content to reference resolution before matching.
         key = rule['id']
+        if rule.get('match') == 'episode_lobby':
+            if not hasattr(self, 'episode_vision'):
+                self.episode_vision = EpisodeVision(ROOT)
+            return self.episode_vision.score(frame, key)
         if key not in self.templates:
             src = cv2.imread(str(ROOT / 'assets' / rule['image']))
             if src is None: raise RuntimeError('Thiếu ảnh mẫu: ' + rule['image'])
@@ -285,8 +310,14 @@ class App:
                 retry_attempt = 0
                 found = None
                 best_key, best_score = '', 0
-                for rule in self.rules:
-                    if self.phase not in rule['phases']: continue
+                episode_active = getattr(self, 'episode_active', False)
+                resuming_episode = episode_active and self.phase == 'resume'
+                # Broad recovery scans must close recognized dialogs before
+                # touching a stage button that may remain visible underneath.
+                candidates = (sorted(self.rules, key=lambda rule: rule['id'] not in EPISODE_DIALOGS)
+                              if episode_active else self.rules)
+                for rule in candidates:
+                    if not resuming_episode and self.phase not in rule['phases']: continue
                     score = self.detect(frame, rule)
                     if score > best_score:
                         best_key, best_score = rule['id'], score
@@ -336,8 +367,15 @@ class App:
                     if key != self.last_report: self.log('Nhận diện: ' + key)
                     self.last_report = key
                     return
-                if key == 'ready' and self.phase == 'reward':
+                # Result evidence also covers resuming after MVP's optional
+                # dialogs. Initial Ready/lobby alone must never count a run.
+                if getattr(self, 'episode_active', False) and key in EPISODE_RESULTS:
+                    self.episode_round_pending = True
+                finishing_episode = (getattr(self, 'episode_active', False)
+                                     and getattr(self, 'episode_round_pending', False))
+                if key == 'ready' and (self.phase == 'reward' or finishing_episode):
                     self.count += 1
+                    self.episode_round_pending = False
                     self.log(f'Hoàn thành vòng {self.count}/{self.total if self.total is not None else "∞"}')
                     if self.total is not None and self.count >= self.total:
                         self.stop('Đã hoàn thành số vòng yêu cầu.'); return
@@ -369,8 +407,86 @@ class App:
         finally:
             self.root.after(400, self.tick)
 
+    def release_navigation_drag(self):
+        if getattr(self, 'navigation_drag_token', None) is not None:
+            self.navigation_drag_token = None
+            user.mouse_event(4, 0, 0, 0, 0)
+
+    def tick_navigation(self, frame, now, region, l, t, terminal):
+        navigation = getattr(self, 'navigation', None)
+        if navigation is None or not navigation.active:
+            return False
+        screen, point = self.navigation_vision.observe(frame, navigation.mode)
+        # Navigation evidence takes precedence over generic game buttons.
+        if screen is None and terminal:
+            screen = 'terminal'
+        label = {'idle': 'Sảnh đang ẩn menu', 'lobby': 'Menu sảnh', 'arena_hub': 'Màn chọn Arena',
+                 'battle_other': 'Battle · chọn Normal', 'battle_normal': 'Battle · kéo tới Abyss',
+                 'battle_abyss': 'Battle · mở Abyss', 'abyss_hub': 'Chọn Abyss thường',
+                 'abyss_floors': 'Abyss · chọn đội', 'terminal': 'Đã tới màn của hoạt động'}.get(
+                     screen, 'đang chờ màn game')
+        if self.preview:
+            self.status.set('Chỉ nhận diện · ' + label)
+            return True
+        event, action = navigation.step(screen, now, point)
+        if event == 'entered':
+            self.last_action = now
+            return False
+        self.status.set('Đang vào mode · ' + label)
+        if event == 'timeout':
+            self.stop('Dừng: chưa xác nhận được màn tiếp theo khi vào mode.'); return True
+        if action is None:
+            return True
+        if not self.background_input and user.GetForegroundWindow() != self.hwnd:
+            self.stop('Dừng: game mất focus trước thao tác.'); return True
+        self.log('Điều hướng: ' + event)
+        self.last_action = now
+        def position(x, y):
+            return (region[0] + int(x / 1280 * (region[2] - region[0])),
+                    region[1] + int(y / 720 * (region[3] - region[1])))
+        sx, sy = position(*action[1:3])
+        if action[0] == 'drag':
+            ex, ey = position(*action[3:5])
+            if self.background_input:
+                self.background_clicker.drag(self.hwnd, sx-l, sy-t, ex-l, ey-t)
+            else:
+                token = object()
+                self.navigation_drag_token = token
+                user.SetCursorPos(sx, sy)
+                user.mouse_event(2, 0, 0, 0, 0)
+                def advance(index):
+                    if getattr(self, 'navigation_drag_token', None) is not token:
+                        return
+                    if (not self.running or user.GetForegroundWindow() != self.hwnd
+                            or user.GetAsyncKeyState(0x77) & 0x8000):
+                        self.release_navigation_drag(); return
+                    try:
+                        user.SetCursorPos(round(sx+(ex-sx)*index/10), round(sy+(ey-sy)*index/10))
+                        if index == 10:
+                            self.release_navigation_drag()
+                        else:
+                            self.root.after(40, lambda: advance(index+1))
+                    except Exception:
+                        self.release_navigation_drag()
+                        raise
+                try:
+                    self.root.after(40, lambda: advance(1))
+                except Exception:
+                    self.release_navigation_drag()
+                    raise
+        elif self.background_input:
+            self.background_clicker.click(self.hwnd, sx-l, sy-t)
+        else:
+            user.SetCursorPos(sx, sy)
+            user.mouse_event(2, 0, 0, 0, 0); user.mouse_event(4, 0, 0, 0, 0)
+        self.next_action = now + 1
+        return True
+
     def tick_arena(self, frame, now, region, l, t):
         obs = self.arena_vision.observe(frame, now=now)
+        if self.tick_navigation(cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY), now, region, l, t,
+                                obs.get('screen') is not None):
+            return
         observed = (obs.get('screen'), obs.get('flags'), obs.get('selected_opponent'), obs.get('auto_on'))
         # Transient missing battle art during skill animations is normal.
         # Keep the last positive observation to avoid flooding the log.
@@ -458,6 +574,8 @@ class App:
 
     def tick_shop(self, frame, now, region, l, t):
         obs = self.shop_vision.observe(frame)
+        if self.tick_navigation(frame, now, region, l, t, bool(obs.get('shop') or obs.get('modal'))):
+            return
         summary = ', '.join(ITEMS[i['kind']] + (' (0/1)' if not i['available'] else '') for i in obs['items'])
         if self.preview:
             self.status.set('Shop · chỉ nhận diện · ' + str(obs['modal'] or summary or 'đang chờ shop'))
@@ -507,6 +625,8 @@ class App:
     def tick_abyss(self, frame, now, region, l, t):
         visible = {rule.get('observation', rule['id'].removeprefix('abyss_')) for rule in self.rules
                    if self.detect(frame, rule) >= rule.get('threshold', .85)}
+        if self.tick_navigation(frame, now, region, l, t, bool(visible & {'ready', 'next', 'battle'})):
+            return
         if self.preview:
             self.status.set('Abyss · chỉ nhận diện: ' + ', '.join(sorted(visible)))
             return
@@ -554,6 +674,8 @@ if __name__ == '__main__':
             shop_vision = ShopVision(ROOT)
             samples += len(shop_vision.templates)
             RookieArenaVision(ROOT)
+            samples += len(EpisodeVision(ROOT).templates)
+            samples += len(NavigationVision(ROOT).templates)
             arena_sample = None
             if '--arena-test-image' in sys.argv:
                 path = sys.argv[sys.argv.index('--arena-test-image') + 1]

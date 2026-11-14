@@ -1,0 +1,226 @@
+{
+  "secret_shop": {
+    "search": [
+      4,
+      298,
+      110,
+      363
+    ]
+  },
+  "arena": {
+    "search": [
+      1161,
+      366,
+      1246,
+      410
+    ]
+  },
+  "battle": {
+    "search": [
+      1161,
+      305,
+      1246,
+      346
+    ]
+  },
+  "abyss_title": {
+    "search": [
+      30,
+      153,
+      152,
+      201
+    ]
+  },
+  "select_team": {
+    "search": [
+      1054,
+      640,
+      1201,
+      684
+    ]
+  },
+  "abyss_floor_icon": {
+    "search": [
+      1091,
+      91,
+      1176,
+      191
+    ]
+  },
+  "abyss_hub_title": {
+    "search": [
+      30,
+      146,
+      152,
+      194
+    ]
+  },
+  "abyss_normal": {
+    "search": [
+      1036,
+      260,
+      1108,
+      297
+    ]
+  },
+  "challenge_mode": {
+    "search": [
+      1036,
+      462,
+      1186,
+      501
+    ]
+  },
+  "battle_heading": {
+    "search": [
+      14,
+      8,
+      148,
+      62
+    ]
+  },
+  "normal_label": {
+    "search": [
+      81,
+      102,
+      163,
+      137
+    ]
+  },
+  "seasonal_label": {
+    "search": [
+      260,
+      102,
+      360,
+      137
+    ]
+  },
+  "normal_selected": {
+    "search": [
+      25,
+      93,
+      219,
+      149
+    ]
+  },
+  "abyss_card": {
+    "search": [
+      0,
+      177,
+      1280,
+      224
+    ]
+  },
+  "abyss_card_art": {
+    "search": [
+      5,
+      274,
+      1275,
+      516
+    ]
+  },
+  "dimensional": {
+    "search": [
+      0,
+      177,
+      1280,
+      544
+    ]
+  },
+  "spirit_altar": {
+    "search": [
+      0,
+      177,
+      1280,
+      544
+    ]
+  },
+  "hunt": {
+    "search": [
+      0,
+      177,
+      1280,
+      544
+    ]
+  },
+  "labyrinth": {
+    "search": [
+      0,
+      177,
+      1280,
+      544
+    ]
+  },
+  "normal_unselected": {
+    "search": [
+      80,
+      100,
+      166,
+      139
+    ]
+  },
+  "seasonal_selected": {
+    "search": [
+      210,
+      93,
+      405,
+      149
+    ]
+  },
+  "seasonal_art": {
+    "search": [
+      358,
+      276,
+      564,
+      494
+    ]
+  },
+  "abyss_hub_scene": {
+    "search": [
+      416,
+      176,
+      654,
+      334
+    ]
+  },
+  "arena_heading": {
+    "search": [
+      14,
+      8,
+      149,
+      62
+    ]
+  },
+  "rookie_entry": {
+    "search": [
+      375,
+      648,
+      562,
+      694
+    ]
+  },
+  "arena_scene": {
+    "search": [
+      448,
+      190,
+      744,
+      341
+    ]
+  },
+  "otherworld": {
+    "search": [
+      0,
+      177,
+      1280,
+      544
+    ]
+  },
+  "abyss_floor_available": {
+    "search": [
+      760,
+      75,
+      932,
+      625
+    ]
+  }
+}

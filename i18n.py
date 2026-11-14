@@ -9,6 +9,32 @@ from string import Formatter
 
 
 CATALOGUE = {
+    'Chưa kiểm tra được cập nhật · Vẫn có thể sử dụng.': 'Update check unavailable · You can keep using AutoE7.',
+    'Chưa có bản phát hành công khai.': 'No public release yet.',
+    'Chưa cấu hình cập nhật.': 'Updates are not configured.',
+    'Tự kiểm tra cập nhật đang tắt.': 'Automatic update checks are off.',
+    'Sảnh đang ẩn menu': 'Lobby with hidden menus',
+    'Menu sảnh': 'Lobby menu',
+    'Màn chọn Arena': 'Arena menu',
+    'Battle · chọn Normal': 'Battle · select Normal',
+    'Battle · kéo tới Abyss': 'Battle · swipe to Abyss',
+    'Battle · mở Abyss': 'Battle · open Abyss',
+    'Chọn Abyss thường': 'Select normal Abyss',
+    'Abyss · chọn đội': 'Abyss · select team',
+    'Đã tới màn của hoạt động': 'Activity screen reached',
+    'Bắt đầu từ sảnh hoặc Secret Shop; quét và mua các món đã chọn.': 'Start from the lobby or Secret Shop; scan and buy selected items.',
+    'Bắt đầu từ sảnh hoặc màn Arena đang chạy. Giữ nguyên đội hình đang chọn.': 'Start from the lobby or an ongoing Arena screen. Keep your current team prepared.',
+    'Bắt đầu từ sảnh hoặc Abyss đang chạy; dùng nhánh Abyss thường.': 'Start from the lobby or an ongoing Abyss screen; uses normal Abyss.',
+    'đang chờ màn game': 'waiting for a game screen',
+    'đang chờ chuyển màn': 'waiting for the next screen',
+    'Dừng: chưa xác nhận được màn tiếp theo khi vào mode.': 'Stopped: unable to confirm the next screen while entering the activity.',
+    'Dừng: game mất focus trước thao tác.': 'Stopped: game lost focus before input.',
+    'Đóng popup cũ để kiểm tra lại Secret Shop': 'Close the existing dialog to recheck Secret Shop',
+    'Đã trở về Secret Shop; quét lại item đã chọn': 'Returned to Secret Shop; rescan selected items',
+    'Popup đã thay đổi khi tiếp tục Secret Shop.': 'The dialog changed while resuming Secret Shop.',
+    'đóng popup cũ': 'close the existing dialog',
+    'Bắt đầu từ sảnh, Ready hoặc màn đang chạy. Chọn số vòng hoặc chạy tới khi dừng.': 'Start from the lobby, Ready, or an ongoing stage. Choose a run limit or run until stopped.',
+    'Episode: tự nhận diện sảnh hoặc màn đang chạy để tiếp tục. Số vòng tính cho lần Bắt đầu này.': 'Episode: detect the lobby or current stage screen to resume. The run limit applies to this Start session.',
     'Không lưu được cấu hình hoạt động. Vui lòng kiểm tra quyền ghi.': 'Unable to save activity settings. Please check write permissions.',
     'Cài đặt': 'Settings',
     'Ngôn ngữ / Language': 'Language',
@@ -140,6 +166,10 @@ CATALOGUE = {
 # Fields capture opaque values. Only explicitly listed fields may themselves be
 # translated (nested status/error descriptions), keeping paths and titles safe.
 TEMPLATES = [
+    ('Có bản mới: {version} · Xem cập nhật', 'Update available: {version} · View update'),
+    ('Chỉ nhận diện · {detail}', 'Detection only · {detail}'),
+    ('Đang vào mode · {detail}', 'Entering activity · {detail}'),
+    ('Điều hướng: {event}', 'Navigation: {event}'),
     ('Phiên bản hiện tại: {version}', 'Current version: {version}'),
     ('Có bản cập nhật mới: {version}', 'Update available: {version}'),
     ('AutoE7 {version}. Sẵn sàng. Chọn hoạt động và kiểm tra cấu hình trước khi bắt đầu.', 'AutoE7 {version}. Ready. Choose an activity and check settings before starting.'),

@@ -2,7 +2,8 @@ AutoE7 — Windows 10/11 64-bit
 
 1. Giải nén TOÀN BỘ file ZIP vào một thư mục trên máy.
 2. Mở AutoE7.exe. Không cần cài Python hay tải thêm thư viện.
-3. Mở game, đưa về màn Ready và chọn đúng cửa sổ Epic Seven trong tool.
+3. Mở game, chọn đúng cửa sổ Epic Seven trong tool. Episode có thể bắt đầu
+   từ sảnh (kể cả đang ẩn nút), Ready hoặc màn đang chạy có hỗ trợ nhận diện.
 4. Lần đầu để “Chỉ nhận diện” bật để kiểm tra, sau đó Dừng và bỏ tích để click.
 5. Muốn chạy khi game bị cửa sổ khác che: bật “Không chiếm chuột” và
    “Chụp trực tiếp cửa sổ khi bị che”. Không thu nhỏ game.
@@ -16,6 +17,9 @@ Cài đặt / Settings:
 - Nút Settings / Cài đặt ở góc trên bên phải đổi Tiếng Việt / English.
 - Lựa chọn lưu tại %LOCALAPPDATA%/AutoE7/settings.json, giữ khi đổi bản portable.
 - Có thể bật/tắt kiểm tra cập nhật khi mở hoặc kiểm tra thủ công trong Settings.
+- Khi bật kiểm tra tự động, mỗi lần mở tool sẽ kiểm tra một lần ở chế độ nền.
+  Kết quả hiện cạnh AutoE7; có bản mới thì bấm thông báo để xem và tải.
+  Mất mạng vẫn dùng bình thường; tool không tự bật popup khi mở.
 - Khi có bản mới, bấm Mở trang tải để mở GitHub Releases. Tải ZIP portable
   trong Assets, không chọn Source code. Dừng bản cũ, giải nén toàn bộ vào
   thư mục mới rồi mở AutoE7.exe. Có thể giữ bản cũ để quay lại nếu cần.
@@ -27,9 +31,15 @@ release is available, choose Open download page. Download the portable ZIP
 under Assets, stop the old instance, extract everything to a new folder and
 launch AutoE7.exe. The app does not install updates automatically.
 
-Hỗ trợ: Đi Map, Start/Start Quest, Skip/Confirm, Clear, Friend Cancel và popup
-thưởng. Đi Hunt chưa được cấu hình. Bắt đầu từ màn Ready; chưa hỗ trợ tự
-phục hồi trạng thái khi bắt đầu giữa trận.
+Episode: nhận diện sảnh, đánh thức menu nếu đang ẩn rồi chọn Episode.
+Có thể dừng và Bắt đầu lại từ Ready, chọn đội, trận đang chạy, Skip/Confirm,
+Clear, MVP và popup thưởng đã có mẫu. Màn lạ sẽ chờ, không click dò.
+Số vòng tính cho lần Bắt đầu mới; lượt dở tính khi hoàn tất và về Ready.
+Secret Shop, Rookie Arena và Abyss cũng nhận diện sảnh và màn đang chạy.
+Abyss vào Battle > Normal, kéo sang phải > Abyss > Abyss thường > Select Team.
+Mỗi lần Bắt đầu tính giới hạn/ngân sách mới; popup mua/Refresh có sẵn được
+đóng để kiểm tra lại. Không suy đoán chi tiêu trước lúc Bắt đầu.
+Hunt chưa được hỗ trợ.
 
 Người dùng cần chọn cửa sổ game trên máy của mình. Nếu khung hình có viền
 hoặc thanh công cụ, chỉnh vùng game để chỉ chứa nội dung game gần tỷ lệ 16:9.
@@ -47,7 +57,7 @@ Reroll Secret Shop: chọn item, nhập Skystone theo bội 3 hoặc để trố
 Quét cả đầu/đáy shop trước mỗi refresh; hết ngân sách vẫn mua shop cuối.
 Lần đầu nên thử ngân sách 3 Skystone. F8 để dừng.
 
-Rookie Arena: mở sẵn danh sách đối thủ. Chọn vị trí ưu tiên hoặc tuần tự 1-2-3.
+Rookie Arena: bắt đầu từ sảnh, màn Arena hoặc danh sách đối thủ. Chọn vị trí ưu tiên hoặc tuần tự 1-2-3.
 Số trận tính cả thắng/thua; có thể tích chạy tới khi dừng.
 Hết lượt mặc định dừng; có thể bật tự mua, ưu tiên tim rồi SkyStone.
 Ngân sách SkyStone tính mỗi lần chạy; 0 chỉ mua bằng tim; 30/5 lượt.

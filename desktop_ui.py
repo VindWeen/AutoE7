@@ -89,6 +89,9 @@ def build_ui(app):
     style.configure('Section.TLabel', background=CARD, foreground=GOLD, font=('Segoe UI', 10, 'bold'))
     style.configure('Title.TLabel', background=BG, foreground=TEXT, font=('Segoe UI', 21, 'bold'))
     style.configure('Sub.TLabel', background=BG, foreground=MUTED, font=('Segoe UI', 10))
+    style.configure('Update.TButton', background='#332c21', foreground=GOLD,
+                    font=('Segoe UI', 10, 'bold'), padding=(12, 6))
+    style.map('Update.TButton', background=[('active', '#493b27')], foreground=[('active', '#f0c87b')])
     style.configure('TCheckbutton', background=CARD, foreground=TEXT, padding=(0, 2))
     style.map('TCheckbutton', background=[('active', CARD), ('disabled', CARD)], foreground=[('disabled', '#777b80')])
     style.configure('TButton', background=FIELD, foreground=TEXT, borderwidth=0, padding=(12, 7))
@@ -123,11 +126,18 @@ def build_ui(app):
     outer.rowconfigure(1, weight=1)
     header = ttk.Frame(outer)
     header.grid(row=0, column=0, sticky='ew', pady=(0, 14))
+    header.columnconfigure(1, weight=1)
+    ttk.Label(header, text='AutoE7', style='Title.TLabel').grid(row=0, column=0, sticky='w')
+    update_slot = ttk.Frame(header)
+    update_slot.grid(row=0, column=1, sticky='w', padx=(18, 12))
+    app.update_status = ttk.Label(update_slot, text='Đang kiểm tra cập nhật…', style='Sub.TLabel')
+    app.update_status.pack(anchor='w')
+    app.update_button = ttk.Button(update_slot, style='Update.TButton',
+                                  command=lambda: app.preferences.show_release())
     app.settings_button = ttk.Button(header, text='Cài đặt', command=app.open_settings)
-    app.settings_button.pack(side='right', anchor='n')
-    app.update_button = ttk.Button(header, command=lambda: app.preferences.show_release())
-    ttk.Label(header, text='AutoE7', style='Title.TLabel').pack(anchor='w')
-    ttk.Label(header, text='Thiết lập và theo dõi phiên tự động', style='Sub.TLabel').pack(anchor='w')
+    app.settings_button.grid(row=0, column=2, sticky='e')
+    ttk.Label(header, text='Thiết lập và theo dõi phiên tự động', style='Sub.TLabel').grid(
+        row=1, column=0, columnspan=3, sticky='w')
     body = ttk.Frame(outer)
     body.grid(row=1, column=0, sticky='nsew')
     body.columnconfigure(0, weight=3, uniform='columns')
@@ -297,10 +307,10 @@ def update_scenario_ui(app):
     abyss = app.scenario.get() == 'Abyss (Tháp)'
     arena = app.scenario.get() == 'Rookie Arena'
     app.limit_label.configure(text='Số trận' if arena else 'Số tầng' if abyss else 'Số vòng')
-    app.scenario_help.configure(text=('Quét shop hiện tại và mua các món đã chọn.' if shop else
-                                      'Mở sẵn danh sách Rookie Arena. Giữ nguyên đội hình đang chọn.' if arena else
-                                      'Hoàn thành từng tầng cho đến giới hạn đã chọn.' if abyss else
-                                      'Chọn số vòng hoặc tích Chạy tới khi dừng.' if app.scenario.get() == 'Đi Map' else
+    app.scenario_help.configure(text=('Bắt đầu từ sảnh hoặc Secret Shop; quét và mua các món đã chọn.' if shop else
+                                      'Bắt đầu từ sảnh hoặc màn Arena đang chạy. Giữ nguyên đội hình đang chọn.' if arena else
+                                      'Bắt đầu từ sảnh hoặc Abyss đang chạy; dùng nhánh Abyss thường.' if abyss else
+                                      'Bắt đầu từ sảnh, Ready hoặc màn đang chạy. Chọn số vòng hoặc chạy tới khi dừng.' if app.scenario.get() == 'Đi Map' else
                                       'Chọn số vòng muốn chạy.'))
     if shop:
         app.count_options.pack_forget()

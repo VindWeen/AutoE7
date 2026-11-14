@@ -6,7 +6,7 @@ A Windows automation tool for Epic Seven, powered by image recognition, with Vie
 
 ## Features
 
-- **Episode** — repeat the selected stage and handle story skips and result screens.
+- **Episode** — enter from the lobby or recognize the current stage to resume; repeat the selected stage and handle skips and results.
 - **Abyss** — run a set number of floors, advance between floors, and use Guardians.
 - **Rookie Arena** — select opponents, track wins and losses, and manage battle flags.
 - **Secret Shop** — refresh and buy selected items within a Skystone budget.
@@ -39,9 +39,13 @@ Download the ZIP from [GitHub Releases](https://github.com/VindWeen/AutoE7/relea
 3. Try **Detection only** first, then turn it off to allow clicks.
 4. Click **Start**. Use **Stop** or **F8** to end the session.
 
-Open **Settings** in the top-right corner to change the language or check for updates. When a newer version is available, you can choose to open its download page.
+On startup, AutoE7 checks once in the background and shows the result beside its title. Click an available-update notice to view details and open the download page. Offline use remains available. Open **Settings** to change the language, toggle automatic checks, or check manually.
 
 Options for each activity are saved automatically to `%LOCALAPPDATA%\AutoE7\settings.json` and restored when switching activities or reopening the app. AutoE7 remembers the last activity and waits for you to click **Start**.
+
+Episode supports the idle or visible-menu lobby, Ready, team selection, ongoing stages, and known result screens. Each Start begins a new run count; an unfinished stage counts when it completes and returns to Ready. Unknown screens cause the tool to wait without guessing clicks.
+
+Secret Shop, Rookie Arena, and Abyss can also start from the lobby or resume at supported screens. Abyss selects Normal, swipes the Battle list to the right, and enters normal Abyss. Prepare your team and battle settings beforehand. Each Start uses a fresh limit/budget; existing purchase or Refresh dialogs are closed and reevaluated without guessing prior spending.
 
 ## Notes
 

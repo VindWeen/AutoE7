@@ -34,6 +34,52 @@ class BackgroundClicker:
         pending = self.pressed
         self.schedule(100, lambda: self.release(pending))
 
+    def drag(self, hwnd, x1, y1, x2, y2):
+        """Drag in client coordinates over 400 ms, without moving the cursor."""
+        if self.pressed is not None:
+            raise RuntimeError('Click trước chưa được thả.')
+        rect = W.RECT()
+        if not user.GetClientRect(hwnd, C.byref(rect)):
+            raise RuntimeError('Cửa sổ nhận kéo không còn hợp lệ.')
+        if any(not isinstance(value, int) for value in (x1, y1, x2, y2)):
+            raise RuntimeError('Tọa độ kéo phải là số nguyên.')
+        # Validate the complete path before sending even the first move.
+        points = [(round(x1 + (x2 - x1) * i / 10),
+                   round(y1 + (y2 - y1) * i / 10)) for i in range(11)]
+        if any(not (0 <= x < rect.right and 0 <= y < rect.bottom
+                    and x <= 32767 and y <= 32767) for x, y in points):
+            raise RuntimeError('Tọa độ kéo ngoài vùng game.')
+        token = object()
+        packed = (points[0][1] << 16) | points[0][0]
+        if not user.PostMessageW(hwnd, 0x0200, 0, packed):
+            raise RuntimeError('Không gửi được vị trí chuột tới game.')
+        if not user.PostMessageW(hwnd, 0x0201, 1, packed):
+            raise RuntimeError('Không gửi được nhấn chuột tới game.')
+        self.pressed = (hwnd, packed, token)
+
+        def advance(index):
+            if self.pressed is None or self.pressed[2] is not token:
+                return
+            try:
+                x, y = points[index]
+                position = (y << 16) | x
+                if not user.PostMessageW(hwnd, 0x0200, 1, position):
+                    raise RuntimeError('Không gửi được kéo chuột tới game.')
+                self.pressed = (hwnd, position, token)
+                if index == 10:
+                    self.release()
+                else:
+                    self.schedule(40, lambda: advance(index + 1))
+            except Exception as exc:
+                self.error = str(exc)
+                self.release()
+
+        try:
+            self.schedule(40, lambda: advance(1))
+        except Exception:
+            self.release()
+            raise
+
     def release(self, expected=None):
         if self.pressed is None or (expected is not None and self.pressed is not expected):
             return

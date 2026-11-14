@@ -7,7 +7,7 @@ from tkinter import ttk, messagebox
 import webbrowser
 
 from app_settings import save_settings
-from desktop_ui import apply_language, BG, CARD, TEXT
+from desktop_ui import apply_language, BG, CARD, TEXT, MUTED
 from i18n import translate
 from updates import UpdateResult, check_for_updates, load_release_config
 
@@ -25,19 +25,53 @@ class PreferencesController:
         self.poll_id = None
         self.start_id = None
         self.manual = False
+        self.startup_started = False
+        self.startup_checked = False
 
     def tr(self, text):
         return translate(text, self.app.language)
 
     def start(self):
+        if self.closed or self.startup_started:
+            return
+        self.startup_started = True
         self.poll_id = self.app.root.after(150, self.poll)
         if self.app.settings.check_updates and self.config.repository:
+            self.header('checking')
             self.start_id = self.app.root.after(1200, self.startup_check)
+        else:
+            self.header('disabled' if not self.config.repository else 'off')
+
+    def header(self, status, result=None):
+        """One persistent header state; only a newer release is actionable."""
+        messages = {
+            'checking': 'Đang kiểm tra cập nhật…',
+            'up_to_date': 'Bạn đang dùng phiên bản mới nhất.',
+            'error': 'Chưa kiểm tra được cập nhật · Vẫn có thể sử dụng.',
+            'no_release': 'Chưa có bản phát hành công khai.',
+            'disabled': 'Chưa cấu hình cập nhật.',
+            'off': 'Tự kiểm tra cập nhật đang tắt.',
+        }
+        if status == 'available' and result is not None:
+            self.app.update_status.pack_forget()
+            self.app.update_button.configure(text='Có bản mới: ' + result.latest_version + ' · Xem cập nhật')
+            self.app.update_button.pack(anchor='w')
+        else:
+            self.app.update_button.pack_forget()
+            self.app.update_status.configure(text=messages.get(status, messages['error']),
+                                             foreground='#abc8a6' if status == 'up_to_date' else MUTED)
+            self.app.update_status.pack(anchor='w')
+        self.retranslate()
 
     def startup_check(self):
         self.start_id = None
-        if not self.closed and self.app.settings.check_updates:
+        if self.closed or self.startup_checked:
+            return
+        if self.app.settings.check_updates:
+            self.startup_checked = True
             self.check()
+        else:
+            self.header('off')
 
     def close(self):
         self.closed = True
@@ -141,6 +175,7 @@ class PreferencesController:
             return
         self.busy = True
         self.manual = manual
+        self.header('checking')
         self.feedback_text('Đang kiểm tra cập nhật…')
         def work():
             try:
@@ -169,16 +204,16 @@ class PreferencesController:
             }
             text = messages.get(result.status, messages['error'])
             self.feedback_text(text)
+            self.header(result.status, result)
             if result.status == 'available':
                 self.latest = result
-                self.app.update_button.configure(text=text)
-                self.app.update_button.pack(side='right', padx=(0, 10), anchor='n')
-                self.retranslate()
-                # Do not interrupt a game session when a late network result arrives.
-                if self.manual or not self.app.running:
+                # Startup reports inline; details open only on explicit action.
+                if self.manual:
                     self.show_release()
-            elif self.manual and not (self.dialog is not None and self.dialog.winfo_exists()):
-                messagebox.showinfo(self.tr('Kiểm tra cập nhật'), self.tr(text), parent=self.app.root)
+            else:
+                self.latest = None
+                if self.manual and not (self.dialog is not None and self.dialog.winfo_exists()):
+                    messagebox.showinfo(self.tr('Kiểm tra cập nhật'), self.tr(text), parent=self.app.root)
         self.poll_id = self.app.root.after(150, self.poll)
 
     def show_release(self):

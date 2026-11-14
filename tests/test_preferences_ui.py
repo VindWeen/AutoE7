@@ -93,7 +93,67 @@ class PreferencesUITests(unittest.TestCase):
             self.controller.poll()
         show.assert_not_called()
         self.assertIsNotNone(self.controller.latest)
-        self.assertEqual(self.app.update_button.cget('text'), 'Có bản cập nhật mới: v2026.11.14-r2')
+        self.assertEqual(self.app.update_button.cget('text'), 'Có bản mới: v2026.11.14-r2 · Xem cập nhật')
+
+    def test_startup_is_scheduled_once_and_shared_with_manual_check(self):
+        self.controller.config = ReleaseConfig('2026.11.14-r1', 'example/AutoE7')
+        self.controller.start()
+        callback = self.controller.start_id
+        self.controller.start()
+        self.assertEqual(self.controller.start_id, callback)
+        with patch('settings_ui.Thread') as worker:
+            self.controller.startup_check()
+            self.controller.startup_check()
+            self.controller.check(manual=True)
+        worker.assert_called_once()
+        self.assertTrue(self.controller.busy)
+        self.assertEqual(self.app.update_status.cget('text'), 'Đang kiểm tra cập nhật…')
+        self.assertEqual(str(self.app.start_button.cget('state')), 'normal')
+
+    def test_startup_available_is_inline_even_when_not_running(self):
+        self.controller.results.put(UpdateResult('available', '2026.11.14-r1', 'v2026.11.14-r2',
+            'https://github.com/example/AutoE7/releases/tag/v2026.11.14-r2', 'Notes'))
+        with patch.object(self.controller, 'show_release') as show:
+            self.controller.poll()
+            show.assert_not_called()
+            self.app.update_button.invoke()
+            show.assert_called_once()
+        self.assertEqual(self.app.update_button.winfo_manager(), 'pack')
+        self.assertEqual(self.app.update_status.winfo_manager(), '')
+
+    def test_latest_status_replaces_old_update_and_switches_language(self):
+        self.controller.results.put(UpdateResult('available', '2026.11.14-r1', 'v2026.11.14-r2'))
+        self.controller.poll()
+        self.controller.results.put(UpdateResult('up_to_date', '2026.11.14-r2'))
+        self.controller.poll()
+        self.assertIsNone(self.controller.latest)
+        self.assertEqual(self.app.update_button.winfo_manager(), '')
+        self.assertEqual(self.app.update_status.cget('text'), 'Bạn đang dùng phiên bản mới nhất.')
+        self.switch('en')
+        self.assertEqual(self.app.update_status.cget('text'), 'You are using the latest version.')
+        self.switch('vi')
+        self.assertEqual(self.app.update_status.cget('text'), 'Bạn đang dùng phiên bản mới nhất.')
+
+    def test_worker_failure_reports_inline_and_leaves_tool_usable(self):
+        with patch('settings_ui.Thread') as worker, patch('settings_ui.check_for_updates', side_effect=OSError):
+            self.controller.check()
+            worker.call_args.kwargs['target']()
+        with patch('settings_ui.messagebox.showinfo') as info:
+            self.controller.poll()
+            info.assert_not_called()
+        self.assertFalse(self.controller.busy)
+        self.assertIn('Vẫn có thể sử dụng', self.app.update_status.cget('text'))
+        self.assertEqual(str(self.app.start_button.cget('state')), 'normal')
+
+    def test_disabled_auto_check_does_not_leave_loading_status(self):
+        self.app.settings = AppSettings(check_updates=False)
+        self.controller.config = ReleaseConfig('2026.11.14-r1', 'example/AutoE7')
+        with patch('settings_ui.Thread') as worker:
+            self.controller.start()
+            self.controller.startup_check()
+            worker.assert_not_called()
+        self.assertIsNone(self.controller.start_id)
+        self.assertEqual(self.app.update_status.cget('text'), 'Tự kiểm tra cập nhật đang tắt.')
 
     def test_release_dialog_only_opens_browser_on_explicit_action(self):
         self.controller.latest = UpdateResult('available', '2026.11.14-r1', 'v2026.11.14-r2',

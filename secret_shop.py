@@ -32,6 +32,8 @@ class ShopRunner:
         self.scroll_attempts = 0
         self.top_image = None
         self.confirmed_modal = False
+        self.recovering = True
+        self.resume_modal = None
 
     def transition(self, state, now):
         self.state = state
@@ -54,6 +56,27 @@ class ShopRunner:
         modal = obs.get('modal')
         shop = obs.get('shop') and modal is None
         items = obs.get('items', [])
+        # A new session cannot know whether a prior Buy/Refresh was submitted.
+        # Close the old dialog, acknowledge the shop, then scan with this
+        # session's selected items and budget instead of spending from a guess.
+        if self.recovering and self.state == 'seek_top' and modal in ('buy', 'refresh'):
+            self.recovering = False
+            self.resume_modal = (modal, obs.get('modal_item'))
+            self.transition('dismiss_resume_modal', now)
+            self.sent, self.attempts = now, 0
+            return 'Đóng popup cũ để kiểm tra lại Secret Shop', self.resume_cancel()
+        if shop:
+            self.recovering = False
+        if self.state == 'dismiss_resume_modal':
+            if shop:
+                self.resume_modal = None
+                self.transition('seek_top', now)
+                return 'Đã trở về Secret Shop; quét lại item đã chọn', None
+            if modal is not None:
+                if (modal, obs.get('modal_item')) != self.resume_modal:
+                    return 'stop:Popup đã thay đổi khi tiếp tục Secret Shop.', None
+                return self.retry(now, self.resume_cancel(), 'đóng popup cũ')
+            return None, None
         if self.state in ('seek_top', 'seek_bottom'):
             if not shop:
                 return None, None
@@ -141,6 +164,9 @@ class ShopRunner:
                 return 'Đã refresh: ' + str(self.spent) + ' Skystone', None
             return None, None
         return None, None
+
+    def resume_cancel(self):
+        return ('click', 480, 510) if self.resume_modal[0] == 'buy' else ('click', 530, 463)
 
     def scrolled_to_bottom(self, image):
         # Rows repeat at ~145 px. A matching row layout alone can also occur

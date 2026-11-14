@@ -120,6 +120,57 @@ class ShopTests(unittest.TestCase):
         self.assertTrue(event.startswith('stop:'))
         self.assertIsNone(action)
 
+    def test_resume_cancels_old_modals_without_spending_or_buying(self):
+        for modal, kind, cancel in [('buy', 'mystic', (480, 510)),
+                                     ('buy', 'covenant', (480, 510)),
+                                     ('buy', None, (480, 510)),
+                                     ('refresh', None, (530, 463))]:
+            with self.subTest(modal=modal, kind=kind):
+                self.runner = ShopRunner(['mystic'], 3)
+                event, action = self.stable(scene(modal=modal, kind=kind), 0)
+                self.assertEqual(action, ('click', *cancel))
+                self.assertEqual(self.runner.state, 'dismiss_resume_modal')
+                self.assertEqual(self.runner.spent, 0)
+                self.assertFalse(any(self.runner.bought.values()))
+                # A missing dialog is insufficient: the shop must be visible.
+                self.assertEqual(self.stable(dict(shop=False), 1), (None, None))
+                self.assertEqual(self.runner.state, 'dismiss_resume_modal')
+                inventory = scene([('covenant', 160, True), ('mystic', 310, True)])
+                self.assertIsNone(self.stable(inventory, 2)[1])
+                self.assertEqual(self.runner.state, 'seek_top')
+                self.runner.step(inventory, 3)
+                self.assertEqual(self.runner.step(inventory, 4)[1], ('click', 1188, 310))
+                self.assertEqual(self.runner.spent, 0)
+
+    def test_resume_cancellation_retry_is_bounded_and_requires_same_modal(self):
+        popup = scene(modal='buy', kind='mystic')
+        self.stable(popup, 0)
+        for now in (4, 8, 12):
+            self.assertEqual(self.runner.step(popup, now)[1], ('click', 480, 510))
+        event, action = self.runner.step(popup, 16)
+        self.assertTrue(event.startswith('stop:'))
+        self.assertIsNone(action)
+        self.runner = ShopRunner(['mystic'], 3)
+        self.stable(popup, 0)
+        event, action = self.stable(scene(modal='refresh'), 4)
+        self.assertTrue(event.startswith('stop:'))
+        self.assertIsNone(action)
+
+    def test_resume_refresh_uses_new_session_budget_after_inventory_scan(self):
+        self.stable(scene(modal='refresh'), 0)
+        self.stable(scene(), 1)
+        self.runner.step(scene(), 2)
+        self.runner.step(scene(), 3)
+        bottom = scene(top=False, bottom=True)
+        self.stable(bottom, 4)
+        self.assertEqual(self.runner.step(bottom, 5)[1], ('click', 265, 665))
+        self.assertEqual(self.stable(scene(modal='refresh'), 6)[1], ('click', 748, 463))
+        self.stable(scene(), 7)
+        self.assertEqual(self.runner.spent, 3)
+        self.runner.step(scene(), 8)
+        self.stable(bottom, 9)
+        self.assertEqual(self.runner.step(bottom, 10), ('done', None))
+
     def test_hidden_scrollbar_requires_scroll_before_accepting_top(self):
         obs = scene()
         obs['endpoint_source'] = 'rows'
