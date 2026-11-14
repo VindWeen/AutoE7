@@ -44,7 +44,7 @@ class TranslationTests(unittest.TestCase):
                          'Rookie Arena · battle 2/∞ · Wins 1 · Losses 1\n0/30 SkyStone · Game screen not recognized yet.')
 
     def test_scenario_and_selection_labels(self):
-        self.assertEqual(translate('Đi Map', 'en'), 'Adventure')
+        self.assertEqual(translate('Đi Map', 'en'), 'Episode')
         self.assertEqual(translate('Đi Hunt', 'en'), 'Hunt')
         self.assertEqual(translate('Abyss (Tháp)', 'en'), 'Abyss (Tower)')
         self.assertEqual(translate('Cố định vị trí ưu tiên', 'en'), 'Fixed preferred position')

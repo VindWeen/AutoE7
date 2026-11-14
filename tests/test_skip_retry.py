@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import Mock, patch
 import numpy as np
-from app import App
+from app import App, ROOT
 
 
 class SkipRetryTests(unittest.TestCase):
@@ -184,7 +184,7 @@ class SkipRetryTests(unittest.TestCase):
 
     def test_rank_up_returns_to_clear_without_counting_round(self):
         app = self.make_app()
-        rules = __import__('json').loads(__import__('pathlib').Path('scenarios.json').read_text(encoding='utf-8'))['Đi Map']
+        rules = __import__('json').loads((ROOT / 'scenarios.json').read_text(encoding='utf-8'))['Đi Map']
         rank = next(r for r in rules if r['id'] == 'map_rank_up')
         app.rules = rules
         app.awaiting = None
@@ -239,7 +239,7 @@ class SkipRetryTests(unittest.TestCase):
 
     def test_connection_unlock_after_mvp_continues_reward_flow(self):
         app = self.make_app()
-        rules = __import__('json').loads(__import__('pathlib').Path('scenarios.json').read_text(encoding='utf-8'))['Đi Map']
+        rules = __import__('json').loads((ROOT / 'scenarios.json').read_text(encoding='utf-8'))['Đi Map']
         app.rules = rules
         app.phase = 'reward'
         app.awaiting = (next(r for r in rules if r['id'] == 'mvp_confirm'), 100, 0)
@@ -256,7 +256,7 @@ class SkipRetryTests(unittest.TestCase):
 
     def test_hero_friendship_closes_before_mvp_without_counting_round(self):
         app = self.make_app()
-        rules = __import__('json').loads(__import__('pathlib').Path('scenarios.json').read_text(encoding='utf-8'))['Đi Map']
+        rules = __import__('json').loads((ROOT / 'scenarios.json').read_text(encoding='utf-8'))['Đi Map']
         app.rules = rules
         app.phase = 'result'
         app.awaiting = (next(r for r in rules if r['id'] == 'clear'), 100, 0)

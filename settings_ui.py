@@ -47,6 +47,9 @@ class PreferencesController:
 
     def window(self, title, geometry):
         window = tk.Toplevel(self.app.root)
+        # Positioning flushes idle tasks: keep the empty window hidden until
+        # its controls and translated labels are ready.
+        window.withdraw()
         window.title(self.tr(title))
         window.configure(bg=BG)
         width, height = map(int, geometry.split('x'))
@@ -64,6 +67,12 @@ class PreferencesController:
         frame = ttk.Frame(window, padding=24)
         frame.pack(fill='both', expand=True)
         return window, frame
+
+    @staticmethod
+    def present(window):
+        window.update_idletasks()
+        window.deiconify()
+        window.lift()
 
     def open(self):
         if self.dialog is not None and self.dialog.winfo_exists():
@@ -91,6 +100,7 @@ class PreferencesController:
         self.feedback.configure(text='Đang kiểm tra cập nhật…' if self.busy else
             'Chưa cấu hình repo GitHub.' if not self.config.repository else 'Sẵn sàng')
         self.retranslate()
+        self.present(self.dialog)
 
     def save(self, language=None, auto=None):
         settings = replace(self.app.settings,
@@ -200,6 +210,7 @@ class PreferencesController:
                    command=self.open_download).pack(side='left')
         ttk.Button(actions, text='Để sau', command=self.release_dialog.destroy).pack(side='right')
         self.retranslate()
+        self.present(self.release_dialog)
 
     def open_download(self):
         try:

@@ -24,6 +24,7 @@ from desktop_ui import BUILD, build_ui, update_scenario_ui, set_running_ui, appl
 from app_settings import load_settings
 from i18n import translate
 from settings_ui import PreferencesController
+from mode_preferences import ModePreferences
 
 ROOT = Path(sys.executable).resolve().parent if getattr(sys, 'frozen', False) else Path(__file__).resolve().parent
 RETRY_ACTIONS = {'ready', 'select_team', 'start', 'start_quest', 'skip', 'clear', 'map_rank_up',
@@ -82,6 +83,7 @@ class App:
         self.config.setdefault('Reroll Secret Shop', [])
         self.config.setdefault('Rookie Arena', [])
         build_ui(self)
+        self.mode_preferences = ModePreferences(self)
         self.preferences = PreferencesController(self, ROOT)
         apply_language(self)
         self.refresh()
@@ -193,6 +195,9 @@ class App:
             self.status.set(reason)
 
     def close(self):
+        if not self.mode_preferences.close():
+            messagebox.showwarning(translate('Cài đặt', self.language), translate(
+                'Không lưu được cấu hình hoạt động. Vui lòng kiểm tra quyền ghi.', self.language), parent=self.root)
         self.preferences.close()
         self.background_clicker.release()
         self.running = False

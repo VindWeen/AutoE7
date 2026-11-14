@@ -1,11 +1,10 @@
 """Regression checks for language switches and asynchronous update notices."""
 import json
-from pathlib import Path
 import tkinter as tk
 import unittest
 from unittest.mock import patch
 
-from app import App
+from app import App, ROOT
 from app_settings import AppSettings
 from desktop_ui import build_ui, apply_language, set_running_ui
 from settings_ui import PreferencesController
@@ -23,11 +22,11 @@ class PreferencesUITests(unittest.TestCase):
         self.app.settings = AppSettings()
         self.app.language = 'vi'
         self.app.running = False
-        self.app.config = json.loads(Path('scenarios.json').read_text(encoding='utf-8-sig'))
+        self.app.config = json.loads((ROOT / 'scenarios.json').read_text(encoding='utf-8-sig'))
         self.app.config.setdefault('Reroll Secret Shop', [])
         self.app.config.setdefault('Rookie Arena', [])
         build_ui(self.app)
-        self.controller = PreferencesController(self.app, Path('.'))
+        self.controller = PreferencesController(self.app, ROOT)
         self.controller.config = ReleaseConfig('2026.11.14-r1', '')
         self.app.preferences = self.controller
         self.app.root.update_idletasks()
@@ -126,6 +125,28 @@ class PreferencesUITests(unittest.TestCase):
         with patch('settings_ui.save_settings', return_value=True):
             self.controller.save(language='vi')
         self.assertEqual(self.controller.feedback.cget('text'), 'Chưa cấu hình repo GitHub.')
+
+    def test_dialog_is_complete_before_first_show(self):
+        self.app.root.deiconify()
+        self.app.root.update_idletasks()
+        observed = []
+        toplevel = tk.Toplevel
+        def create(parent):
+            window = toplevel(parent)
+            def mapped(event):
+                if event.widget == window:
+                    frames = window.winfo_children()
+                    observed.append(sum(len(frame.winfo_children()) for frame in frames))
+            window.bind('<Map>', mapped)
+            return window
+        with patch('settings_ui.tk.Toplevel', side_effect=create):
+            self.controller.open()
+            self.app.root.update()
+        self.assertTrue(observed)
+        self.assertTrue(all(count >= 8 for count in observed), observed)
+        self.assertEqual(self.app.settings_button.cget('text'), 'Cài đặt')
+        self.switch('en')
+        self.assertEqual(self.app.settings_button.cget('text'), 'Settings')
 
 
 if __name__ == '__main__':

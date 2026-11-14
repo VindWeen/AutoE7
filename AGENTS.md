@@ -8,6 +8,7 @@
 - Người dùng kiểm tra trực tiếp bằng `run.bat`; thay đổi mã nguồn không cần build lại bản portable.
 - Không tự build, đóng gói hoặc cập nhật EXE; không tự tạo hay cập nhật ZIP phát hành.
 - Không tự sửa các bản phân phối trong `dist/` hoặc `release/` để đưa thay đổi vào bản chạy đã đóng gói.
+- Khi được yêu cầu build, lưu log trong `build/<phiên-bản>/build.log` (ví dụ `build/latest-2026-11-14-r2/build.log`); không tạo build log rải ở thư mục gốc project.
 - Chỉ build EXE hoặc xuất ZIP khi người dùng yêu cầu rõ ràng. Yêu cầu sửa lỗi hoặc thêm tính năng không bao hàm yêu cầu build hay đóng gói.
 - Không tự tạo commit, amend commit, push, tạo repo GitHub hoặc đăng GitHub Release khi người dùng chưa yêu cầu rõ ràng thao tác tương ứng. Trao đổi ý tưởng hoặc yêu cầu sửa mã nguồn không phải là yêu cầu thực hiện các thao tác này.
 - Sau khi sửa xong, báo ngắn gọn nội dung thay đổi và kết quả kiểm tra; không cần hỏi người dùng có muốn build, xuất ZIP, commit hay push hay không.

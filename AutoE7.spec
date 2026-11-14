@@ -67,5 +67,6 @@ coll = COLLECT(
 # COLLECT DATA entries under _internal by default, unlike app.py's ROOT.
 portable_root = Path(coll.name)
 shutil.copytree(Path(SPECPATH) / 'assets', portable_root / 'assets', dirs_exist_ok=True)
-for filename in ('scenarios.json', 'release_config.json', 'PORTABLE-GUIDE.txt', 'README.md'):
+for filename in ('scenarios.json', 'release_config.json', 'PORTABLE-GUIDE.txt',
+                 'README.md', 'README.en.md', 'RELEASING.md'):
     shutil.copy2(Path(SPECPATH) / filename, portable_root / filename)

@@ -130,7 +130,7 @@ class ShopTests(unittest.TestCase):
 
     def test_bottom_fallback_requires_actual_full_scroll(self):
         from pathlib import Path
-        root = Path(__file__).resolve().parent
+        root = Path(__file__).resolve().parents[1]
         def image(name):
             frame=cv2.imread(str(root/'tests'/'fixtures'/('shop_'+name+'.png')),0)
             return cv2.resize(frame[80:710,550:1240],(64,64),interpolation=cv2.INTER_AREA)

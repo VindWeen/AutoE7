@@ -21,7 +21,7 @@ Không có workflow tự build/phát hành khi sửa mã nguồn hoặc push.
 1. Chọn phiên bản mới duy nhất dạng `YYYY.MM.DD-rN`, ví dụ `2026.11.14-r1`.
    Tăng revision khi phát hành nhiều lần trong ngày. Cập nhật `version` trong
    `release_config.json`; đây là nguồn phiên bản cho giao diện và bộ kiểm tra.
-2. Chạy kiểm thử Python và kiểm tra trực tiếp qua `run.bat`, cả hai ngôn ngữ,
+2. Chạy `py -m unittest discover -s tests -t . -v` từ thư mục gốc và kiểm tra trực tiếp qua `run.bat`, cả hai ngôn ngữ,
    các chế độ game có thay đổi và trạng thái mất mạng. Kiểm thử backend dùng mock,
    không yêu cầu repo hay release thật.
 3. Sau khi có yêu cầu build, dùng cấu hình `AutoE7.spec` để tạo bản Windows portable.

@@ -29,7 +29,10 @@ class LocalizedCombobox(ttk.Combobox):
 
     def retranslate(self):
         index = self.current()
-        self.configure(values=[translate(value, self.language()) for value in self.source_values])
+        language = self.language()
+        labels = {'Đi Map': 'Episode', 'Đi Hunt': 'Hunt',
+                  'Đi Hunt (chưa cấu hình)': 'Hunt'} if language == 'vi' else {}
+        self.configure(values=[labels.get(value, translate(value, language)) for value in self.source_values])
         if index >= 0:
             self.current(index)
 
@@ -120,7 +123,7 @@ def build_ui(app):
     outer.rowconfigure(1, weight=1)
     header = ttk.Frame(outer)
     header.grid(row=0, column=0, sticky='ew', pady=(0, 14))
-    app.settings_button = ttk.Button(header, text='⚙ Settings / Cài đặt', command=app.open_settings)
+    app.settings_button = ttk.Button(header, text='Cài đặt', command=app.open_settings)
     app.settings_button.pack(side='right', anchor='n')
     app.update_button = ttk.Button(header, command=lambda: app.preferences.show_release())
     ttk.Label(header, text='AutoE7', style='Title.TLabel').pack(anchor='w')

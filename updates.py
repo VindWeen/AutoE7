@@ -9,7 +9,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
 
-DEFAULT_VERSION = '2026.11.14-r1'
+DEFAULT_VERSION = '2026.11.14-r2'
 MAX_RESPONSE_BYTES = 1024 * 1024
 _VERSION = re.compile(r'v?(\d{4})\.(\d{2})\.(\d{2})-r([1-9]\d*)', re.ASCII)
 _REPOSITORY = re.compile(r'[A-Za-z0-9][A-Za-z0-9-]*/[A-Za-z0-9_.-]+', re.ASCII)

@@ -9,7 +9,7 @@ from string import Formatter
 
 
 CATALOGUE = {
-    '⚙ Settings / Cài đặt': '⚙ Settings',
+    'Không lưu được cấu hình hoạt động. Vui lòng kiểm tra quyền ghi.': 'Unable to save activity settings. Please check write permissions.',
     'Cài đặt': 'Settings',
     'Ngôn ngữ / Language': 'Language',
     'Kiểm tra cập nhật khi mở tool': 'Check for updates on startup',
@@ -60,8 +60,9 @@ CATALOGUE = {
     'Bắt đầu': 'Start',
     'Dừng': 'Stop',
     'F8  ·  Dừng khẩn cấp': 'F8  ·  Emergency stop',
-    'Đi Map': 'Adventure',
+    'Đi Map': 'Episode',
     'Đi Hunt': 'Hunt',
+    'Đi Hunt (chưa cấu hình)': 'Hunt',
     'Abyss (Tháp)': 'Abyss (Tower)',
     'Quét shop hiện tại và mua các món đã chọn.': 'Scan the current shop and buy selected items.',
     'Mở sẵn danh sách Rookie Arena. Giữ nguyên đội hình đang chọn.': 'Open the Rookie Arena list first. Keep the selected team.',

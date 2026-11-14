@@ -7,7 +7,7 @@ import numpy as np
 from secret_shop_vision import ShopVision
 
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 
 
 class ShopVisionTests(unittest.TestCase):

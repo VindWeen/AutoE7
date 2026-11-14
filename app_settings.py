@@ -1,5 +1,5 @@
 """Small, per-user preferences store; independent of the portable directory."""
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 import json
 import os
 from pathlib import Path
@@ -10,6 +10,35 @@ import tempfile
 class AppSettings:
     language: str = 'vi'
     check_updates: bool = True
+    last_mode: str = ''
+    mode_settings: dict = field(default_factory=dict)
+
+
+def clean_mode_settings(profiles):
+    """Ignore malformed fields while preserving usable per-mode preferences."""
+    if not isinstance(profiles, dict):
+        return {}
+    result = {}
+    boolean_fields = {'forever', 'dry', 'no_mouse', 'hidden_capture', 'advanced_open', 'arena_refill'}
+    text_fields = {'limit', 'region', 'shop_budget', 'arena_budget'}
+    for mode, values in profiles.items():
+        if not isinstance(mode, str) or not mode or len(mode) > 100 or not isinstance(values, dict):
+            continue
+        profile = {}
+        for key, value in values.items():
+            if key in boolean_fields and type(value) is bool:
+                profile[key] = value
+            elif key in text_fields and isinstance(value, str) and len(value) <= 100:
+                profile[key] = value
+            elif key == 'arena_mode' and value in ('fixed', 'sequential'):
+                profile[key] = value
+            elif key == 'arena_preferred' and value in ('1', '2', '3'):
+                profile[key] = value
+            elif key == 'shop_selected' and isinstance(value, dict):
+                profile[key] = {item: selected for item, selected in value.items()
+                                if item in ('friendship', 'covenant', 'mystic') and type(selected) is bool}
+        result[mode] = profile
+    return result
 
 
 def settings_path():
@@ -31,7 +60,11 @@ def load_settings(path=None):
         check_updates = data.get('check_updates', True)
         if type(check_updates) is not bool:
             check_updates = True
-        return AppSettings(language, check_updates)
+        last_mode = data.get('last_mode', '')
+        if not isinstance(last_mode, str) or len(last_mode) > 100:
+            last_mode = ''
+        return AppSettings(language, check_updates, last_mode,
+                           clean_mode_settings(data.get('mode_settings', {})))
     except (OSError, ValueError, TypeError):
         return AppSettings()
 

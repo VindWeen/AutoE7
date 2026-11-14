@@ -8,7 +8,7 @@ from rookie_arena_vision import RookieArenaVision
 from rookie_arena import RookieArenaRunner
 
 
-ROOT=Path(__file__).resolve().parent
+ROOT=Path(__file__).resolve().parents[1]
 
 
 class RookieArenaVisionTests(unittest.TestCase):
