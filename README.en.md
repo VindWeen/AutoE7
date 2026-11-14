@@ -13,30 +13,27 @@ A Windows automation tool for Epic Seven, powered by image recognition, with Vie
 - Detection-only mode, clicks that keep your mouse free, and covered-window capture.
 - Update checks through GitHub Releases; press **F8** to stop automation.
 
-## Getting started
+## Download and install
+
+Choose a build from the [**latest release**](https://github.com/VindWeen/AutoE7/releases/latest). Both support **Windows 10/11 x64** and work without Python.
+
+| Build | Getting started | Updates |
+| --- | --- | --- |
+| **Portable ZIP** | Extract everything and open `AutoE7.exe` | Download the new ZIP and extract into a new folder |
+| **Setup EXE** | Run Setup, then launch from Start Menu or the optional Desktop shortcut | Click **Update** in the app |
+
+Stop the old app before upgrading. Setup defaults to `%LOCALAPPDATA%\Programs\AutoE7`; uninstall through Windows Settings → Apps.
+
+Installed builds download Setup, verify SHA-256, save preferences, close the app, upgrade in the existing directory, and reopen. After successful startup, cached installers for the current and older versions are removed. Offline use and download failures leave the current app usable.
 
 ### Run from source
 
-Requires **Windows 10/11**, **Python 3.11+**, Tkinter, and the Python Launcher (`py`).
-
-Download or clone this repository, then open **`run.bat`**. The script installs the required dependencies and starts the application.
-
-Alternatively, run these commands from the project directory:
+Requires **Python 3.11+**, Tkinter, and the Python Launcher (`py`). Clone the repository and open **`run.bat`** to install dependencies and launch, or run:
 
 ```powershell
 py -m pip install -r requirements.txt
 py app.py
 ```
-
-### Portable version
-
-Download the ZIP from [GitHub Releases](https://github.com/VindWeen/AutoE7/releases), extract the entire archive, and open **`AutoE7.exe`**. The portable version does not require a Python installation.
-
-### Installer
-
-Download **AutoE7-Setup-<version>.exe** from [GitHub Releases](https://github.com/VindWeen/AutoE7/releases), run Setup, and launch AutoE7 from Start Menu. Installs for the current Windows user, with an optional Desktop shortcut.
-
-Installed builds offer **Update** to download, verify, install, and reopen the newer version while keeping personal preferences. Portable builds continue to use manual ZIP downloads.
 
 ## Usage
 
@@ -45,9 +42,9 @@ Installed builds offer **Update** to download, verify, install, and reopen the n
 3. Try **Detection only** first, then turn it off to allow clicks.
 4. Click **Start**. Use **Stop** or **F8** to end the session.
 
-On startup, AutoE7 checks once in the background and shows the result beside its title. Click an available-update notice to view details and open the download page. Offline use remains available. Open **Settings** to change the language, toggle automatic checks, or check manually.
+When automatic checks are enabled, AutoE7 checks once in the background on startup and shows the result beside its title. Click a new-version notice for details: installed builds offer **Update**, while portable builds open the ZIP download page. Offline use remains available. Open **Settings** to change the language, toggle automatic checks, or check manually.
 
-Options for each activity are saved automatically to `%LOCALAPPDATA%\AutoE7\settings.json` and restored when switching activities or reopening the app. AutoE7 remembers the last activity and waits for you to click **Start**.
+Options for each activity are saved automatically to `%LOCALAPPDATA%\AutoE7\settings.json` and restored when switching activities or reopening the app. AutoE7 remembers the last activity and waits for you to click **Start**. Preferences survive upgrades and uninstalling the installed app.
 
 Episode supports the idle or visible-menu lobby, Ready, team selection, ongoing stages, and known result screens. Each Start begins a new run count; an unfinished stage counts when it completes and returns to Ready. Unknown screens cause the tool to wait without guessing clicks.
 
@@ -59,4 +56,4 @@ Secret Shop, Rookie Arena, and Abyss can also start from the lobby or resume at 
 - Background clicks and covered-window capture are experimental. Keep the game window restored while running.
 - Hunt is not supported yet. Try a single run before starting a longer session.
 
-[Portable guide (Vietnamese/English)](PORTABLE-GUIDE.txt) · [Tests](tests/README.md) · [Release process (Vietnamese)](RELEASING.md) · [Report an issue](https://github.com/VindWeen/AutoE7/issues)
+[Installation guide](INSTALL-GUIDE.txt) · [Portable guide (Vietnamese/English)](PORTABLE-GUIDE.txt) · [Tests](tests/README.md) · [Release process (Vietnamese)](RELEASING.md) · [Report an issue](https://github.com/VindWeen/AutoE7/issues)

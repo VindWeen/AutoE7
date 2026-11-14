@@ -13,30 +13,27 @@ Công cụ tự động hóa Epic Seven trên Windows bằng nhận diện hình
 - Chế độ chỉ nhận diện, click không chiếm chuột và chụp cửa sổ khi bị che.
 - Kiểm tra phiên bản mới từ GitHub Releases; **F8** để dừng tác vụ.
 
-## Bắt đầu
+## Tải và cài đặt
+
+Chọn một bản tại [**Release mới nhất**](https://github.com/VindWeen/AutoE7/releases/latest). Cả hai đều dùng cho **Windows 10/11 x64**, không cần cài Python.
+
+| Bản | Cách dùng | Cập nhật |
+| --- | --- | --- |
+| **Portable ZIP** | Giải nén toàn bộ, mở `AutoE7.exe` | Tải ZIP mới và giải nén vào thư mục mới |
+| **Setup EXE** | Chạy bộ cài, mở từ Start Menu hoặc shortcut Desktop | Bấm **Cập nhật** trong app |
+
+Dừng bản cũ trước khi nâng cấp. Bản cài mặc định ở `%LOCALAPPDATA%\Programs\AutoE7` và có thể gỡ trong Settings → Apps của Windows.
+
+Bản cài tự tải Setup, kiểm tra SHA-256, lưu cấu hình, đóng app và cài vào đúng thư mục hiện tại rồi tự mở lại. Sau khi mở thành công, app dọn Setup trong cache của phiên bản hiện tại và các bản cũ. Mất mạng hoặc tải lỗi vẫn dùng bản đang cài.
 
 ### Chạy từ mã nguồn
 
-Yêu cầu **Windows 10/11**, **Python 3.11+**, Tkinter và Python Launcher (`py`).
-
-Tải hoặc clone repo, sau đó mở **`run.bat`**. Script sẽ cài các thư viện cần thiết và khởi động ứng dụng.
-
-Hoặc chạy trong terminal tại thư mục project:
+Yêu cầu **Python 3.11+**, Tkinter và Python Launcher (`py`). Clone repo rồi mở **`run.bat`** để cài thư viện và chạy, hoặc dùng:
 
 ```powershell
 py -m pip install -r requirements.txt
 py app.py
 ```
-
-### Bản portable
-
-Tải ZIP tại [GitHub Releases](https://github.com/VindWeen/AutoE7/releases), giải nén toàn bộ rồi mở **`AutoE7.exe`**. Bản portable không cần cài Python.
-
-### Bản cài đặt
-
-Tải **AutoE7-Setup-<phiên-bản>.exe** tại [GitHub Releases](https://github.com/VindWeen/AutoE7/releases), chạy bộ cài và mở AutoE7 từ Start Menu. Cài theo tài khoản Windows hiện tại; có thể tạo shortcut Desktop.
-
-Bản cài đặt có nút **Cập nhật** để tải, kiểm tra và cài phiên bản mới, sau đó tự mở lại. Setting cá nhân được giữ nguyên. Bản portable vẫn dùng cách tải và giải nén ZIP.
 
 ## Sử dụng
 
@@ -45,9 +42,9 @@ Bản cài đặt có nút **Cập nhật** để tải, kiểm tra và cài phi
 3. Thử **Chỉ nhận diện** trước, sau đó tắt tùy chọn này để cho phép click.
 4. Bấm **Bắt đầu**. Dùng **Dừng** hoặc **F8** để kết thúc.
 
-Mỗi lần mở, tool kiểm tra cập nhật một lần ở chế độ nền và hiển thị kết quả cạnh tiêu đề **AutoE7**. Có bản mới thì bấm thông báo để xem và mở trang tải; mất mạng vẫn dùng bình thường. Mở **Cài đặt** ở góc phải để đổi ngôn ngữ, bật/tắt kiểm tra tự động hoặc kiểm tra thủ công.
+Khi bật kiểm tra tự động, mỗi lần mở tool sẽ kiểm tra cập nhật một lần trong nền và hiển thị kết quả cạnh tiêu đề **AutoE7**. Bấm thông báo bản mới để xem chi tiết: bản cài có nút **Cập nhật**, portable mở trang tải ZIP. Mất mạng vẫn dùng bình thường. Mở **Cài đặt** ở góc phải để đổi ngôn ngữ, bật/tắt kiểm tra tự động hoặc kiểm tra thủ công.
 
-Cấu hình từng mode được tự lưu tại `%LOCALAPPDATA%\AutoE7\settings.json` và khôi phục khi chuyển mode hoặc mở lại tool. Tool nhớ mode gần nhất và chờ bạn bấm **Bắt đầu**.
+Cấu hình từng mode được tự lưu tại `%LOCALAPPDATA%\AutoE7\settings.json` và khôi phục khi chuyển mode hoặc mở lại tool. Tool nhớ mode gần nhất và chờ bạn bấm **Bắt đầu**. Cấu hình được giữ khi nâng cấp hoặc gỡ bản cài.
 
 Episode hỗ trợ sảnh đang ẩn nút, sảnh có menu, Ready, chọn đội, trận đang chạy và các màn kết quả đã có mẫu. Khi bắt đầu lại, số vòng tính cho phiên mới; lượt đang dở được tính khi hoàn tất và trở về Ready. Màn chưa nhận diện được sẽ chờ, không click dò.
 
@@ -59,4 +56,4 @@ Secret Shop, Rookie Arena và Abyss cũng có thể bắt đầu từ sảnh ho�
 - Click nền và chụp cửa sổ bị che còn thử nghiệm; không thu nhỏ game trong khi chạy.
 - Hunt chưa được hỗ trợ. Nên thử một vòng trước khi chạy dài.
 
-[Hướng dẫn portable](PORTABLE-GUIDE.txt) · [Kiểm thử](tests/README.md) · [Quy trình phát hành](RELEASING.md) · [Báo lỗi](https://github.com/VindWeen/AutoE7/issues)
+[Hướng dẫn cài đặt](INSTALL-GUIDE.txt) · [Hướng dẫn portable](PORTABLE-GUIDE.txt) · [Kiểm thử](tests/README.md) · [Quy trình phát hành](RELEASING.md) · [Báo lỗi](https://github.com/VindWeen/AutoE7/issues)
