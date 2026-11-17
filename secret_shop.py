@@ -181,7 +181,7 @@ class ShopRunner:
         if float(patch.std()) < 5:
             return False
         scores = cv2.matchTemplate(current[:39, :44], patch, cv2.TM_CCOEFF_NORMED)
-        return bool(float(scores.max()) >= .76)
+        return bool(float(scores.max()) >= .72)
 
     def row(self, items):
         return next((i for i in items if i['kind'] == self.pending['kind']

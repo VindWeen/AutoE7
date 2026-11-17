@@ -33,7 +33,7 @@ from installation import is_installed, InstallationLock, app_user_model_id
 from installed_updates import cleanup_cached_installers
 
 ROOT = Path(sys.executable).resolve().parent if getattr(sys, 'frozen', False) else Path(__file__).resolve().parent
-RETRY_ACTIONS = {'ready', 'select_team', 'start', 'start_quest', 'skip', 'clear', 'map_rank_up',
+RETRY_ACTIONS = {'ready', 'view_story', 'select_team', 'start', 'start_quest', 'skip', 'clear', 'map_rank_up',
                  'mvp_confirm', 'skip_confirm', 'friend_cancel', 'story_clear', 'received_reward',
                  'connection_unlocked', 'hero_friendship', 'lobby_wake', 'lobby_episode'}
 REQUIRE_NEXT_SCREEN = {'ready', 'select_team', 'clear', 'mvp_confirm', 'map_rank_up',
@@ -351,7 +351,7 @@ class App:
                     # Starting a quest can lead to normal combat with no button
                     # to detect, so require two valid frames without Start.
                     waiting = source_visible or sent_rule['id'] in REQUIRE_NEXT_SCREEN or (
-                        sent_rule['id'] in ('start', 'start_quest') and self.awaiting_missing < 2)
+                        sent_rule['id'] in ('start', 'start_quest', 'view_story') and self.awaiting_missing < 2)
                     if waiting and not next_action:
                         if source_visible and sent_rule['id'] in RETRY_ACTIONS and attempts < 3 and now-sent_at >= 3:
                             # Retry only with the source button recognized in
@@ -388,12 +388,14 @@ class App:
                     self.episode_round_pending = True
                 finishing_episode = (getattr(self, 'episode_active', False)
                                      and getattr(self, 'episode_round_pending', False))
-                if key == 'ready' and (self.phase == 'reward' or finishing_episode):
+                if key in ('ready', 'view_story') and (self.phase == 'reward' or finishing_episode):
                     self.count += 1
                     self.episode_round_pending = False
                     self.log(f'Hoàn thành vòng {self.count}/{self.total if self.total is not None else "∞"}')
                     if self.total is not None and self.count >= self.total:
                         self.stop('Đã hoàn thành số vòng yêu cầu.'); return
+                if getattr(self, 'episode_active', False) and key == 'view_story':
+                    self.episode_round_pending = True
                 x, y = found['click']
                 screen_x = region[0]+int(x/1280*(region[2]-region[0]))
                 screen_y = region[1]+int(y/720*(region[3]-region[1]))

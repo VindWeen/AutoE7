@@ -47,6 +47,7 @@
         513
       ],
       "phases": [
+        "battle",
         "reward"
       ],
       "next": "reward"
@@ -65,6 +66,7 @@
         558
       ],
       "phases": [
+        "battle",
         "reward"
       ],
       "next": "reward"
@@ -191,10 +193,32 @@
       ],
       "phases": [
         "prepare",
+        "battle",
         "reward"
       ],
       "next": "support",
       "max_error": 16
+    },
+    {
+      "id": "view_story",
+      "image": "view_story.png",
+      "rect": [
+        1055,
+        643,
+        1167,
+        680
+      ],
+      "click": [
+        1120,
+        660
+      ],
+      "phases": [
+        "prepare",
+        "battle",
+        "reward"
+      ],
+      "next": "battle",
+      "max_error": 20
     },
     {
       "id": "select_team",

@@ -99,9 +99,9 @@ class SkipRetryTests(unittest.TestCase):
 
     def preparation_app(self, action, visible=True, next_screen=False, attempts=0):
         app = self.make_app()
-        phases = {'ready':'support','select_team':'team','start':'battle','start_quest':'battle'}
+        phases = {'ready':'support','view_story':'battle','select_team':'team','start':'battle','start_quest':'battle'}
         source = {'id':action,'phases':['prepare'],'click':[1100,660],'next':phases[action]}
-        target = {'id':'skip' if action in ('start','start_quest') else 'start',
+        target = {'id':'skip' if action in ('start','start_quest','view_story') else 'start',
                   'phases':[phases[action]],'click':[1200,40],'next':'battle'}
         app.phase = phases[action]
         app.rules = [source,target]
@@ -110,7 +110,7 @@ class SkipRetryTests(unittest.TestCase):
         return app
 
     def test_all_preparation_buttons_retry_after_three_seconds(self):
-        for action in ('ready','select_team','start','start_quest'):
+        for action in ('ready','view_story','select_team','start','start_quest'):
             with self.subTest(action=action):
                 app = self.preparation_app(action)
                 self.tick(app,104)
@@ -127,18 +127,20 @@ class SkipRetryTests(unittest.TestCase):
                 app.background_clicker.click.assert_not_called()
 
     def test_start_accepts_normal_combat_after_two_valid_frames(self):
-        app = self.preparation_app('start_quest',visible=False)
-        self.tick(app,104)
-        self.assertIsNotNone(app.awaiting)
-        self.tick(app,105)
-        self.assertIsNone(app.awaiting)
-        app.background_clicker.click.assert_not_called()
+        for action in ('start_quest', 'view_story'):
+            with self.subTest(action=action):
+                app = self.preparation_app(action, visible=False)
+                self.tick(app, 104)
+                self.assertIsNotNone(app.awaiting)
+                self.tick(app, 105)
+                self.assertIsNone(app.awaiting)
+                app.background_clicker.click.assert_not_called()
 
     def test_preparation_retries_stop_at_limit(self):
-        for action in ('ready','select_team','start','start_quest'):
+        for action in ('ready', 'view_story', 'select_team', 'start', 'start_quest'):
             with self.subTest(action=action):
-                app = self.preparation_app(action,attempts=3)
-                self.tick(app,113)
+                app = self.preparation_app(action, attempts=3)
+                self.tick(app, 113)
                 app.stop.assert_called_once()
                 app.background_clicker.click.assert_not_called()
 

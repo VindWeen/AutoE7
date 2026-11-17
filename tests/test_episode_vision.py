@@ -28,13 +28,16 @@ class EpisodeVisionTests(unittest.TestCase):
         for scene, expected, other in (
             ('idle', 'lobby_wake', 'lobby_episode'),
             ('menu', 'lobby_episode', 'lobby_wake'),
+            ('rabbit_idle', 'lobby_wake', 'lobby_episode'),
+            ('rabbit_menu', 'lobby_episode', 'lobby_wake'),
         ):
             frame = self.frame(scene)
             self.assertGreaterEqual(self.vision.score(frame, expected), .90)
             self.assertLess(self.vision.score(frame, other), .90)
 
     def test_small_brightness_position_and_resampling_drift(self):
-        for scene, rule in (('idle', 'lobby_wake'), ('menu', 'lobby_episode')):
+        for scene, rule in (('idle', 'lobby_wake'), ('menu', 'lobby_episode'),
+                            ('rabbit_idle', 'lobby_wake'), ('rabbit_menu', 'lobby_episode')):
             original = self.frame(scene)
             variants = [np.clip(original.astype(float) + delta, 0, 255).astype(np.uint8) for delta in (-8, 8)]
             variants += [cv2.warpAffine(original, np.float32([[1, 0, dx], [0, 1, dy]]), (1280, 720))
@@ -47,12 +50,12 @@ class EpisodeVisionTests(unittest.TestCase):
                     self.assertLess(self.vision.score(frame, 'lobby_episode' if rule == 'lobby_wake' else 'lobby_wake'), .90)
 
     def test_ready_map_and_real_quit_popup_are_unknown(self):
-        for scene in ('ready', 'quit_confirmation'):
+        for scene in ('ready', 'view_story', 'quit_confirmation'):
             with self.subTest(scene=scene):
                 self.assert_unknown(self.frame(scene))
 
     def test_dimmed_lobbies_and_obscured_scene_are_unknown(self):
-        for scene in ('idle', 'menu'):
+        for scene in ('idle', 'menu', 'rabbit_idle', 'rabbit_menu'):
             original = self.frame(scene)
             for gain in (.35, .60, .75, .85):
                 with self.subTest(scene=scene, gain=gain):

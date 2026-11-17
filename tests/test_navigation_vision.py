@@ -14,7 +14,8 @@ class NavigationVisionTests(unittest.TestCase):
         cls.vision = NavigationVision(ROOT)
 
     def test_idle_and_visible_lobby_for_each_mode(self):
-        for fixture, expected in (('idle', 'idle'), ('menu', 'lobby')):
+        for fixture, expected in (('idle', 'idle'), ('menu', 'lobby'),
+                                  ('rabbit_idle', 'idle'), ('rabbit_menu', 'lobby')):
             frame = cv2.imread(str(ROOT / 'tests/fixtures/episode' / (fixture+'.png')), 0)
             for mode in ('shop', 'arena', 'abyss'):
                 self.assertEqual(self.vision.observe(frame, mode), (expected, None))
@@ -43,7 +44,7 @@ class NavigationVisionTests(unittest.TestCase):
             self.assertEqual(self.vision.observe(covered, 'abyss'), (None, None))
 
     def test_unknown_screens_and_modal_do_not_authorize_navigation(self):
-        for scene in ('ready', 'quit_confirmation'):
+        for scene in ('ready', 'view_story', 'quit_confirmation'):
             frame = cv2.imread(str(ROOT / 'tests/fixtures/episode' / (scene+'.png')), 0)
             for mode in ('shop', 'arena', 'abyss'):
                 self.assertEqual(self.vision.observe(frame, mode), (None, None))

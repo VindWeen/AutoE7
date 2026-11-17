@@ -52,7 +52,7 @@ class EpisodeResumeTests(unittest.TestCase):
         self.tick(app, now + .5)
 
     def test_restart_at_each_supported_stage_screen(self):
-        actions = ('ready', 'select_team', 'start', 'start_quest', 'skip', 'skip_confirm',
+        actions = ('ready', 'view_story', 'select_team', 'start', 'start_quest', 'skip', 'skip_confirm',
                    'clear', 'mvp_confirm', 'friend_cancel', 'story_clear', 'received_reward',
                    'hero_friendship', 'connection_unlocked', 'map_rank_up')
         for action in actions:
@@ -109,6 +109,30 @@ class EpisodeResumeTests(unittest.TestCase):
         self.assertEqual(app.count, 1)
         self.assertEqual(app.background_clicker.click.call_count, 4)
         app.stop.assert_called_once()
+
+    def test_initial_view_story_is_not_a_finished_run_and_completes_after_return(self):
+        app = self.make_app('view_story')
+        self.observe(app, 100, 'view_story')
+        self.assertEqual(app.count, 0)
+        self.assertTrue(app.episode_round_pending)
+        self.observe(app, 103, 'skip')
+        self.observe(app, 106, 'skip_confirm')
+        self.observe(app, 109, 'story_clear')
+        self.observe(app, 112, 'view_story')
+        self.assertEqual(app.count, 1)
+        self.assertEqual(app.background_clicker.click.call_count, 4)
+        app.stop.assert_called_once()
+
+    def test_view_story_without_reward_dialog_completes_round(self):
+        app = self.make_app('view_story')
+        self.observe(app, 100, 'view_story')
+        self.assertEqual(app.count, 0)
+        self.assertTrue(app.episode_round_pending)
+        self.observe(app, 103, 'skip')
+        self.observe(app, 106, 'skip_confirm')
+        self.observe(app, 109, 'ready')
+        self.assertEqual(app.count, 1)
+        self.assertFalse(app.episode_round_pending)
 
     def test_modal_priority_over_underlying_skip_or_mvp(self):
         for popup, underneath in (('skip_confirm', 'skip'), ('friend_cancel', 'mvp_confirm'),
@@ -192,6 +216,18 @@ class EpisodeResumeTests(unittest.TestCase):
         self.observe(app, 100)
         app.background_clicker.click.assert_not_called()
         self.assertEqual(app.count, 0)
+
+    def test_view_story_real_image_detection(self):
+        app = self.make_app()
+        del app.detect
+        app.templates = {}
+        gray = cv2.imread(str(ROOT / 'tests/fixtures/episode/view_story.png'), 0)
+        app.frame = cv2.cvtColor(gray, cv2.COLOR_GRAY2RGB)
+        self.observe(app, 100)
+        self.assertIsNotNone(app.awaiting)
+        self.assertEqual(app.awaiting[0]['id'], 'view_story')
+        self.assertEqual(app.phase, 'battle')
+        app.background_clicker.click.assert_called_once_with(123, 1120, 660)
 
     def test_lobby_click_retry_limit_and_positive_acknowledgement(self):
         for action in ('lobby_wake', 'lobby_episode'):

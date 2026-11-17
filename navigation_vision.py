@@ -15,30 +15,36 @@ class NavigationVision:
         self.patterns = json.loads((folder / 'patterns.json').read_text(encoding='utf-8'))
         self.templates = {}
         for name in self.patterns:
-            template = cv2.imread(str(folder / (name + '.png')), 0)
-            if template is None:
+            tpls = [cv2.imread(str(folder / (name + '.png')), 0)]
+            alt_path = folder / (name + '_alternate.png')
+            if alt_path.is_file():
+                alt = cv2.imread(str(alt_path), 0)
+                if alt is not None:
+                    tpls.append(alt)
+            if any(t is None for t in tpls):
                 raise ValueError('Missing navigation template: ' + name)
-            self.templates[name] = template
+            self.templates[name] = tpls
 
     def match(self, gray, name):
         spec = self.patterns[name]
         x, y, right, bottom = spec['search']
         region = gray[y:bottom, x:right]
-        template = self.templates[name]
+        templates = self.templates[name]
         best, point = 0., None
-        for scale in (.98, 1., 1.02):
-            scaled = cv2.resize(template, None, fx=scale, fy=scale)
-            h, w = scaled.shape
-            if h > region.shape[0] or w > region.shape[1]:
-                continue
-            _, score, _, location = cv2.minMaxLoc(cv2.matchTemplate(region, scaled, cv2.TM_CCOEFF_NORMED))
-            lx, ly = location
-            patch = region[ly:ly+h, lx:lx+w]
-            mean = float(scaled.mean())
-            if abs(float(patch.mean())-mean) > 20 or (mean > 60 and patch.mean() < .88*mean):
-                continue
-            if score > best:
-                best, point = score, (x+lx+w//2, y+ly+h//2)
+        for template in templates:
+            for scale in (.98, 1., 1.02):
+                scaled = cv2.resize(template, None, fx=scale, fy=scale)
+                h, w = scaled.shape
+                if h > region.shape[0] or w > region.shape[1]:
+                    continue
+                _, score, _, location = cv2.minMaxLoc(cv2.matchTemplate(region, scaled, cv2.TM_CCOEFF_NORMED))
+                lx, ly = location
+                patch = region[ly:ly+h, lx:lx+w]
+                mean = float(scaled.mean())
+                if abs(delta := abs(float(patch.mean()) - mean)) > 20 or (mean > 60 and patch.mean() < .88 * mean):
+                    continue
+                if score > best:
+                    best, point = score, (x+lx+w//2, y+ly+h//2)
         return best, point
 
     def has(self, gray, *names):
